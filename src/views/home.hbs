@@ -1,0 +1,361 @@
+<html lang='en'>
+
+  <head>
+    <meta charset='UTF-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+    <link rel='stylesheet' href='../public/css/style.css' />
+    <!-- Latest compiled and minified CSS -->
+    <link
+      rel='stylesheet'
+      href='https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css'
+    />
+    <link
+      rel='stylesheet'
+      href='https://use.fontawesome.com/releases/v5.7.0/css/all.css'
+      integrity='sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ'
+      crossorigin='anonymous'
+    />
+
+    <!-- jQuery library -->
+    <script
+      src='https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.slim.min.js'
+    ></script>
+
+    <!-- Popper JS -->
+    <script
+      src='https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js'
+    ></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script
+      src='https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js'
+    ></script>
+    <title>CRUD User</title>
+  </head>
+  <style>
+    .my-custom-scrollbar { position: relative; height: 400px; overflow: auto; }
+    .table-wrapper-scroll-y { display: block; }
+  </style>
+  <body class='container'>
+    <div class='topnav'>
+      <a href="/user/getAllUsers">Home page</a> 
+    </div>
+    <div style='padding-left:16px'>
+      <h2>User list</h2>
+      <a href='/user/trash'>Deleted list</a>
+    </div>
+    <div class='d-flex align-items-center justify-content-between'>
+      <button
+        type='button'
+        class='btn btn-primary btn-sm h4'
+        data-toggle='modal'
+        data-target='#create-user-modal'
+      >
+        Add new user
+        <i class='fas fa-plus'></i>
+      </button>
+      <form class="d-flex align-items-center" action='/user/search' method='post'>
+        <input
+          class='form-control sm'
+          required
+          type='text'
+          name='value'
+          placeholder='Search for username or email'
+        />
+        <input value="getAllUsers" name="page" hidden/>
+        <button type='submit' class='btn btn-primary h4 p-2 mt-2' >
+          <i class='fas fa-search'></i>
+        </button>
+      </form>
+    </div>
+
+    <form name='container-form' method='post' action='/user/handle-action-form'>
+      <div class='d-flex align-items-center justify-content-between'>
+        <div class='d-flex align-items-center mb-2'>
+          <div class='form-check mr-2'>
+            <input
+              class='form-check-input'
+              type='checkbox'
+              value=''
+              id='checkbox-all'
+            />
+            <label class='form-check-label' for='checkbox-all'>
+              Select all
+            </label>
+          </div>
+          <select
+            name='action'
+            class='form-control form-control-sm w-50'
+            required
+          >
+            <option value=''>---Choose action---</option>
+            <option value='delete'>Delete</option>
+          </select>
+          <button
+            class='btn btn-primary btn-sm check-all-submit-btn disabled ml-2'
+          >Perform</button>
+        </div>
+
+      </div>
+      <div>
+      </div>
+      <h3 class="text-danger">{{message.message}}</h3>
+      <div class='table-wrapper-scroll-y my-custom-scrollbar'>
+        <table class='table table table-bordered table-striped mb-0'>
+          <thead class='thead-light'>
+            <tr>
+              <th></th>
+              <th scope='col'>#</th>
+              <th scope='col'>_id{{sort.type}}
+              </th>
+              <th scope='col'>Username
+                {{{sortable "username" _sort}}}
+              </th>
+              <th scope='col'>Email
+                {{{sortable "email" _sort}}}
+              </th>
+              <th scope='col'>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each data}}
+              <tr>
+                <td>
+                  <div class='form-check'>
+                    <input
+                      class='form-check-input'
+                      type='checkbox'
+                      name='usersId[]'
+                      value='{{this._id}}'
+                      id='defaultCheck1'
+                    />
+                  </div>
+                </td>
+                <td>{{sum @index 1}}</td>
+                <td>
+                  {{this._id}}
+                </td>
+                <td>
+                  {{this.username}}
+                </td>
+                <td>
+                  {{this.email}}
+                </td>
+                <td>
+                  {{!-- <a class="btn btn-secondary h4" href="detail/user?{{this._id}}" target="_blank">Detail</a> --}}
+                  <a class='btn btn-info h4' href='/user/edit/{{this._id}}'>
+                    <i class='fas fa-pen'></i>
+                  </a>
+                  <button
+                    type='button'
+                    class='btn btn-danger h4'
+                    data-toggle='modal'
+                    data-id='{{this._id}}'
+                    data-target='#delete-user-modal'
+                  >
+                    <i class='fas fa-trash'></i>
+                  </button>
+                </td>
+              </tr>
+            {{else}}
+              <tr>
+                <td colspan='5' class='text-center'>Currently no users nào.
+                  <a href='/user/getAllUsers'>Please add a new user</a>
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </form>
+    <!-- Modal delete -->
+    <div
+      class='modal fade'
+      id='delete-user-modal'
+      tabindex='-1'
+      role='dialog'
+      aria-labelledby='exampleModalLongTitle'
+      aria-hidden='true'
+    >
+      <div class='modal-dialog' role='document'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <h5 class='modal-title' id='exampleModalLongTitle'>Delete User
+            </h5>
+            <button
+              type='button'
+              class='close'
+              data-dismiss='modal'
+              aria-label='Close'
+            >
+              <span aria-hidden='true'>&times;</span>
+            </button>
+          </div>
+          <div class='modal-body'>
+            Are you sure to delete this User?
+          </div>
+          <div class='modal-footer'>
+            <button
+              type='button'
+              class='btn btn-secondary h4'
+              data-dismiss='modal'
+            >Close</button>
+            <a
+              {{!-- href='/user/delete/{{this._id}}' --}}
+              type='button'
+              class='btn btn-danger h4 btn-delete-user'
+              id='btn-delete-user'
+            >
+              Delete
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Modal crate -->
+    <div
+      class='modal fade'
+      id='create-user-modal'
+      tabindex='-1'
+      role='dialog'
+      aria-labelledby='exampleModalLongTitle'
+      aria-hidden='true'
+    >
+      <div class='modal-dialog' role='document'>
+        <div class='modal-content'>
+          <div class='modal-header'>
+            <h5 class='modal-title' id='exampleModalLongTitle'>Create new user
+            </h5>
+            <button
+              type='button'
+              class='close'
+              data-dismiss='modal'
+              aria-label='Close'
+            >
+              <span aria-hidden='true'>&times;</span>
+            </button>
+          </div>
+          <form action='/user/create' method='post'>
+            <div class='modal-body'>
+              <div class='form-row'>
+                <div class='form-group col-md-12'>
+                  <label for=''>Email</label>
+                  <input
+                    class='form-control'
+                    required
+                    type='email'
+                    name='email'
+                  />
+                </div>
+                <div class='form-group col-md-6'>
+                  <label for=''>username:</label>
+                  <input
+                    class='form-control'
+                    required
+                    type='text'
+                    name='username'
+                  />
+                </div>
+                <div class='form-group col-md-6'>
+                  <label for=''>password:</label>
+                  <div class='d-flex align-items-center'>
+                    <input
+                      class='form-control'
+                      required
+                      id='password'
+                      type='password'
+                      name='password'
+                    />
+                    <div class='form-check p-1'>
+                      <input
+                        class=''
+                        type='checkbox'
+                        name='ShowHidePassword'
+                        id='ShowHidePassword'
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class='modal-footer'>
+              <button
+                type='button'
+                class='btn btn-secondary h4'
+                data-dismiss='modal'
+              >Close</button>
+              <button type='submit' class='btn btn-danger h4'>
+                Add
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <form name='delete-user-form' method='post'></form>
+  </body>
+ <script>
+    document.addEventListener('DOMContentLoaded', function() { 
+      var userId; 
+      var deleteUserForm = document.forms['delete-user-form']; 
+      var btnDeleteUser =document.getElementById('btn-delete-user'); 
+      var checkboxAll = $('#checkbox-all'); 
+      var userItemCheckbox = $('input[name="usersId[]"]'); 
+      var checkAllSubmitBtn = $('.check-all-submit-btn');
+      var containerForm = document.forms['container-form'];
+      var checkboxShowHide = $('#ShowHidePassword'); 
+      var inputPassword = $('#password'); 
+      //show/hide  password
+      checkboxShowHide.change(function(){
+        var isCheckedAll = $(this).prop('checked');
+        if (isCheckedAll){
+          inputPassword.attr('type', 'text')
+        }else{
+          inputPassword.attr('type', 'password')
+        }
+      });
+      //when dialog confirm clicked
+      $('#delete-user-modal').on('show.bs.modal', function (event) { 
+        var button = $(event.relatedTarget); 
+        var userId = button.data('id');
+        btnDeleteUser.onclick = function () { 
+          deleteUserForm.action = "/user/delete-soft/"+userId; deleteUserForm.submit(); 
+        }; 
+      });
+      //checkbox all clicked
+      checkboxAll.change(function(){ 
+        var isCheckedAll = $(this).prop('checked');
+        console.log(isCheckedAll);
+        userItemCheckbox.prop('checked',isCheckedAll) 
+        renderCheckAllSubmitBtn(); 
+      });
+      //user item checkboxchange
+      userItemCheckbox.change(function(){ 
+        var isCheckedAll = userItemCheckbox.length === $('input[name="usersId[]"]:checked').length;
+        checkboxAll.prop('checked',isCheckedAll); 
+        renderCheckAllSubmitBtn() 
+      });
+      //check all submit buttons  clicked
+      checkAllSubmitBtn.on('submit', function(e){
+        var isSubmitTable = !$(this).hasClass('disabled');
+        if(!isSubmitTable){
+          e.preventDefault();
+        }
+        containerForm.submit();
+      });
+      //re render check all submit btn 
+      function renderCheckAllSubmitBtn() { 
+        var checkedCount = $('input[name="usersId[]"]:checked').length; 
+        if (checkedCount){
+          checkAllSubmitBtn.removeClass('disabled')
+        }else{
+          checkAllSubmitBtn.addClass('disabled')
+        }
+      }
+    });
+  </script>
+
+
+
+</html>
