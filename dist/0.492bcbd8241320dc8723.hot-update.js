@@ -3,7 +3,7 @@ exports.id = 0;
 exports.ids = null;
 exports.modules = {
 
-/***/ 5:
+/***/ 23:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -14,34 +14,36 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AppModule = void 0;
+exports.AuthModule = void 0;
 const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
-const config_1 = __webpack_require__(32);
-const app_controller_1 = __webpack_require__(8);
-const app_service_1 = __webpack_require__(9);
-const user_module_1 = __webpack_require__(10);
-const SortMiddleware_middleware_1 = __webpack_require__(21);
-const auth_module_1 = __webpack_require__(22);
-let AppModule = exports.AppModule = class AppModule {
-    configure(consumer) {
-        consumer.apply(SortMiddleware_middleware_1.SortMiddleWare).forRoutes('user');
-    }
+const jwt_1 = __webpack_require__(24);
+const passport_1 = __webpack_require__(25);
+const local_strategy_1 = __webpack_require__(26);
+const auth_controller_1 = __webpack_require__(29);
+const auth_service_1 = __webpack_require__(28);
+const user_schema_1 = __webpack_require__(15);
+const user_module_1 = __webpack_require__(11);
+const configuration_1 = __webpack_require__(30);
+let AuthModule = exports.AuthModule = class AuthModule {
 };
-exports.AppModule = AppModule = __decorate([
+exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             user_module_1.UserModule,
-            mongoose_1.MongooseModule.forRoot('mongodb://localhost:27017/crud_nestjs'),
-            auth_module_1.AuthModule,
-            config_1.ConfigModule.forRoot({
-                envFilePath: '.development.env',
+            passport_1.PassportModule,
+            jwt_1.JwtModule.register({
+                global: true,
+                secret: configuration_1.jwtConstants.secret,
+                signOptions: { expiresIn: configuration_1.jwtConstants.jwtExpiration },
             }),
+            mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]),
         ],
-        controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService],
+        controllers: [auth_controller_1.AuthController],
+        providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy],
+        exports: [auth_service_1.AuthService],
     })
-], AppModule);
+], AuthModule);
 
 
 /***/ })
@@ -51,7 +53,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("09240283da70d42bc80a")
+/******/ 	__webpack_require__.h = () => ("20f37790f7765f5d1182")
 /******/ })();
 /******/ 
 /******/ }
