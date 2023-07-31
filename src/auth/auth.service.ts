@@ -14,52 +14,52 @@ export class AuthService {
     @InjectModel(User.name) private readonly model: Model<UserDocument>,
     private jwtService: JwtService,
   ) {}
-  //JWT
-  // async login(email: string, password: string): Promise<object> {
-  //   return new Promise<object>(async (resolve, reject) => {
-  //     try {
-  //       const userFind = await this.model
-  //         .findOne({ email })
-  //         .select([
-  //           '-createdAt',
-  //           '-updatedAt',
-  //           '-deleted',
-  //           '-deletedAt',
-  //           '-__v',
-  //         ])
-  //         .exec();
-  //       const isCheckPassword = await bcrypt.compare(
-  //         password,
-  //         `${userFind?.password}`,
-  //       );
-  //       if (userFind) {
-  //         if (!isCheckPassword) {
-  //           resolve({
-  //             status: 'error',
-  //             message: 'Wrong password',
-  //           });
-  //         } else {
-  //           const payload = {
-  //             sub: userFind?._id,
-  //             username: userFind?.username,
-  //           };
-  //           const refreshToken = uuid();
-  //           resolve({
-  //             access_token: await this.jwtService.signAsync(payload),
-  //             refresh_token: refreshToken,
-  //           });
-  //         }
-  //       } else {
-  //         resolve({
-  //           status: 'error',
-  //           message: `Your email does not exist. Please re-enter!`,
-  //         });
-  //       }
-  //     } catch (error) {
-  //       reject(error);
-  //     }
-  //   });
-  // }
+  // JWT
+  async loginUser(email: string, password: string): Promise<object> {
+    return new Promise<object>(async (resolve, reject) => {
+      try {
+        const userFind = await this.model
+          .findOne({ email })
+          .select([
+            '-createdAt',
+            '-updatedAt',
+            '-deleted',
+            '-deletedAt',
+            '-__v',
+          ])
+          .exec();
+        const isCheckPassword = await bcrypt.compare(
+          password,
+          `${userFind?.password}`,
+        );
+        if (userFind) {
+          if (!isCheckPassword) {
+            resolve({
+              status: 'error',
+              message: 'Wrong password',
+            });
+          } else {
+            const payload = {
+              sub: userFind?._id,
+              username: userFind?.username,
+            };
+            const refreshToken = uuid();
+            resolve({
+              access_token: await this.jwtService.signAsync(payload),
+              refresh_token: refreshToken,
+            });
+          }
+        } else {
+          resolve({
+            status: 'error',
+            message: `Your email does not exist. Please re-enter!`,
+          });
+        }
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
 
   async register(user: CreateUserDto): Promise<object> {
     return new Promise<object>(async (resolve, reject) => {
@@ -119,7 +119,7 @@ export class AuthService {
             });
           } else {
             resolve({
-              user: userFind,
+              userInfo: userFind,
             });
           }
         } else {
@@ -135,7 +135,8 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { sub: user._id, username: user.username };
+    const { _id, username } = user.userInfo;
+    const payload = { sub: _id, username: username };
     return {
       access_token: this.jwtService.sign(payload),
     };

@@ -3,7 +3,7 @@ exports.id = 0;
 exports.ids = null;
 exports.modules = {
 
-/***/ 28:
+/***/ 13:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -24,14 +24,60 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthService = void 0;
 const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
-const mongoose_2 = __webpack_require__(13);
-const bcrypt = __webpack_require__(14);
-const jwt_1 = __webpack_require__(24);
-const user_schema_1 = __webpack_require__(15);
+const mongoose_2 = __webpack_require__(14);
+const bcrypt = __webpack_require__(15);
+const uuidv4_1 = __webpack_require__(16);
+const jwt_1 = __webpack_require__(17);
+const user_schema_1 = __webpack_require__(18);
 let AuthService = exports.AuthService = class AuthService {
     constructor(model, jwtService) {
         this.model = model;
         this.jwtService = jwtService;
+    }
+    async loginUser(email, password) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const userFind = await this.model
+                    .findOne({ email })
+                    .select([
+                    '-createdAt',
+                    '-updatedAt',
+                    '-deleted',
+                    '-deletedAt',
+                    '-__v',
+                ])
+                    .exec();
+                const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
+                if (userFind) {
+                    if (!isCheckPassword) {
+                        resolve({
+                            status: 'error',
+                            message: 'Wrong password',
+                        });
+                    }
+                    else {
+                        const payload = {
+                            sub: userFind?._id,
+                            username: userFind?.username,
+                        };
+                        const refreshToken = (0, uuidv4_1.uuid)();
+                        resolve({
+                            access_token: await this.jwtService.signAsync(payload),
+                            refresh_token: refreshToken,
+                        });
+                    }
+                }
+                else {
+                    resolve({
+                        status: 'error',
+                        message: `Your email does not exist. Please re-enter!`,
+                    });
+                }
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
     }
     async register(user) {
         return new Promise(async (resolve, reject) => {
@@ -64,11 +110,11 @@ let AuthService = exports.AuthService = class AuthService {
         });
     }
     async validateUser(username, password) {
-        console.log('service', username, password);
         return new Promise(async (resolve, reject) => {
             try {
-                const userFind = await this.model.findOne({ username });
-                select([
+                const userFind = await this.model
+                    .findOne({ username })
+                    .select([
                     '-createdAt',
                     '-updatedAt',
                     '-deleted',
@@ -76,7 +122,6 @@ let AuthService = exports.AuthService = class AuthService {
                     '-__v',
                 ])
                     .exec();
-                ;
                 const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
                 console.log(userFind);
                 if (userFind) {
@@ -104,6 +149,15 @@ let AuthService = exports.AuthService = class AuthService {
             }
         });
     }
+    async login(user) {
+        console.log('check 3', user);
+        console.log(user.username);
+        const payload = { sub: _id, username: username };
+        console.log('check', payload);
+        return {
+            access_token: this.jwtService.sign(payload),
+        };
+    }
 };
 exports.AuthService = AuthService = __decorate([
     (0, common_1.Injectable)(),
@@ -119,7 +173,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("a4d268067f8dde79412f")
+/******/ 	__webpack_require__.h = () => ("cdc06819e6acd44f0446")
 /******/ })();
 /******/ 
 /******/ }

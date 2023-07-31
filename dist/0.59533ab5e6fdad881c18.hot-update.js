@@ -3,7 +3,7 @@ exports.id = 0;
 exports.ids = null;
 exports.modules = {
 
-/***/ 29:
+/***/ 9:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -19,25 +19,22 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f;
+var _a, _b, _c, _d;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AuthController = void 0;
+exports.AppController = void 0;
 const common_1 = __webpack_require__(6);
-const express_1 = __webpack_require__(17);
-const local_auth_guard_1 = __webpack_require__(34);
-const auth_service_1 = __webpack_require__(28);
-const create_user_dto_1 = __webpack_require__(18);
-const jwt_auth_guard_1 = __webpack_require__(37);
-let AuthController = exports.AuthController = class AuthController {
-    constructor(AuthService) {
+const app_service_1 = __webpack_require__(10);
+const local_auth_guard_1 = __webpack_require__(11);
+const auth_service_1 = __webpack_require__(13);
+const jwt_auth_guard_1 = __webpack_require__(19);
+const express_1 = __webpack_require__(20);
+let AppController = exports.AppController = class AppController {
+    constructor(appService, AuthService) {
+        this.appService = appService;
         this.AuthService = AuthService;
     }
-    async register(res, user) {
-        const data = await this.AuthService.register({
-            ...user,
-            username: user.username?.toLowerCase(),
-        });
-        return res.status(common_1.HttpStatus.CREATED).json(data);
+    root() {
+        return { message: 'Hello world 123!' };
     }
     async login(request) {
         return this.AuthService.login(request.user);
@@ -47,33 +44,32 @@ let AuthController = exports.AuthController = class AuthController {
     }
 };
 __decorate([
-    (0, common_1.Post)('/register'),
-    __param(0, (0, common_1.Res)()),
-    __param(1, (0, common_1.Body)()),
+    (0, common_1.Get)(),
+    (0, common_1.Render)('index'),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object, typeof (_c = typeof create_user_dto_1.CreateUserDto !== "undefined" && create_user_dto_1.CreateUserDto) === "function" ? _c : Object]),
-    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
-], AuthController.prototype, "register", null);
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "root", null);
 __decorate([
     (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
     (0, common_1.Post)('passport/login'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _e : Object]),
+    __metadata("design:paramtypes", [typeof (_c = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _c : Object]),
     __metadata("design:returntype", Promise)
-], AuthController.prototype, "login", null);
+], AppController.prototype, "login", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     (0, common_1.Get)('profile'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_f = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _f : Object]),
+    __metadata("design:paramtypes", [typeof (_d = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _d : Object]),
     __metadata("design:returntype", void 0)
-], AuthController.prototype, "getProfile", null);
-exports.AuthController = AuthController = __decorate([
-    (0, common_1.Controller)('auth'),
-    __metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object])
-], AuthController);
+], AppController.prototype, "getProfile", null);
+exports.AppController = AppController = __decorate([
+    (0, common_1.Controller)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof app_service_1.AppService !== "undefined" && app_service_1.AppService) === "function" ? _a : Object, typeof (_b = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _b : Object])
+], AppController);
 
 
 /***/ })
@@ -83,7 +79,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("9718b11e5c6e3f5f3a65")
+/******/ 	__webpack_require__.h = () => ("a6cf75f20f6165cfff89")
 /******/ })();
 /******/ 
 /******/ }

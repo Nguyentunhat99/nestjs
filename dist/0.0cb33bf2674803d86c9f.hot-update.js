@@ -3,7 +3,7 @@ exports.id = 0;
 exports.ids = null;
 exports.modules = {
 
-/***/ 26:
+/***/ 30:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -19,18 +19,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LocalStrategy = void 0;
-const passport_local_1 = __webpack_require__(27);
-const passport_1 = __webpack_require__(25);
+const passport_local_1 = __webpack_require__(31);
+const passport_1 = __webpack_require__(12);
 const common_1 = __webpack_require__(6);
-const auth_service_1 = __webpack_require__(28);
+const auth_service_1 = __webpack_require__(13);
 let LocalStrategy = exports.LocalStrategy = class LocalStrategy extends (0, passport_1.PassportStrategy)(passport_local_1.Strategy) {
     constructor(authService) {
         super();
         this.authService = authService;
     }
-    async validate(email, password) {
-        console.log('1', email, password);
-        const user = await this.authService.validateUser(email, password);
+    async validate(username, password) {
+        const user = await this.authService.validateUser(username, password);
         if (!user) {
             throw new common_1.UnauthorizedException();
         }
@@ -50,7 +49,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("eb8cd977e5770c2baf74")
+/******/ 	__webpack_require__.h = () => ("ae09edcc02fd8120a390")
 /******/ })();
 /******/ 
 /******/ }
