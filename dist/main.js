@@ -238,6 +238,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AppModule = void 0;
 const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
+const config_1 = __webpack_require__(32);
 const app_controller_1 = __webpack_require__(8);
 const app_service_1 = __webpack_require__(9);
 const user_module_1 = __webpack_require__(10);
@@ -254,6 +255,9 @@ exports.AppModule = AppModule = __decorate([
             user_module_1.UserModule,
             mongoose_1.MongooseModule.forRoot('mongodb://localhost:27017/crud_nestjs'),
             auth_module_1.AuthModule,
+            config_1.ConfigModule.forRoot({
+                envFilePath: '.development.env',
+            }),
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
@@ -944,10 +948,10 @@ const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
 const jwt_1 = __webpack_require__(23);
 const auth_controller_1 = __webpack_require__(24);
-const auth_service_1 = __webpack_require__(26);
+const auth_service_1 = __webpack_require__(27);
 const user_schema_1 = __webpack_require__(14);
 const user_module_1 = __webpack_require__(10);
-const configuration_1 = __webpack_require__(28);
+const configuration_1 = __webpack_require__(26);
 let AuthModule = exports.AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule = __decorate([
@@ -960,7 +964,7 @@ exports.AuthModule = AuthModule = __decorate([
             jwt_1.JwtModule.register({
                 global: true,
                 secret: configuration_1.jwtConstants.secret,
-                signOptions: { expiresIn: '360s' },
+                signOptions: { expiresIn: configuration_1.jwtConstants.jwtExpiration },
             }),
             mongoose_1.MongooseModule.forFeature([{ name: user_schema_1.User.name, schema: user_schema_1.UserSchema }]),
         ],
@@ -998,8 +1002,8 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthController = void 0;
 const common_1 = __webpack_require__(6);
 const express_1 = __webpack_require__(16);
-const auth_guard_1 = __webpack_require__(32);
-const auth_service_1 = __webpack_require__(26);
+const auth_guard_1 = __webpack_require__(25);
+const auth_service_1 = __webpack_require__(27);
 const create_user_dto_1 = __webpack_require__(17);
 let AuthController = exports.AuthController = class AuthController {
     constructor(AuthService) {
@@ -1017,6 +1021,7 @@ let AuthController = exports.AuthController = class AuthController {
         return res.status(common_1.HttpStatus.CREATED).json(data);
     }
     getProfile(request) {
+        return request.user;
     }
 };
 __decorate([
@@ -1050,8 +1055,90 @@ exports.AuthController = AuthController = __decorate([
 
 
 /***/ }),
-/* 25 */,
+/* 25 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthGuard = void 0;
+const common_1 = __webpack_require__(6);
+const jwt_1 = __webpack_require__(23);
+const configuration_1 = __webpack_require__(26);
+let AuthGuard = exports.AuthGuard = class AuthGuard {
+    constructor(jwtService) {
+        this.jwtService = jwtService;
+    }
+    async canActivate(context) {
+        const request = context.switchToHttp().getRequest();
+        const token = this.extractTokenFromHeader(request);
+        if (!token) {
+            throw new common_1.UnauthorizedException();
+        }
+        try {
+            const payload = await this.jwtService.verifyAsync(token, {
+                secret: configuration_1.jwtConstants.secret,
+            });
+            console.log('payload', payload);
+            request['user'] = payload;
+        }
+        catch {
+            throw new common_1.UnauthorizedException({
+                message: 'Unauthorized! Access Token was expired!',
+                statusCode: 401,
+            });
+        }
+        return true;
+    }
+    extractTokenFromHeader(request) {
+        console.log(request.headers);
+        const [type, token] = request.headers.authorization?.split(' ') ?? [];
+        console.log('3', token, type);
+        return type === 'Token' ? token : undefined;
+    }
+};
+exports.AuthGuard = AuthGuard = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _a : Object])
+], AuthGuard);
+
+
+/***/ }),
 /* 26 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.jwtConstants = exports.config = void 0;
+const config = () => ({
+    app: {
+        port: process.env.PORT,
+    },
+    database: {
+        database_host: process.env.DATABASE_HOST,
+        database_name: process.env.DATABASE_NAME,
+    },
+});
+exports.config = config;
+exports.jwtConstants = {
+    secret: 'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
+    jwtExpiration: '360s',
+};
+
+
+/***/ }),
+/* 27 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1075,7 +1162,7 @@ const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
 const mongoose_2 = __webpack_require__(12);
 const bcrypt = __webpack_require__(13);
-const uuidv4_1 = __webpack_require__(27);
+const uuidv4_1 = __webpack_require__(28);
 const jwt_1 = __webpack_require__(23);
 const user_schema_1 = __webpack_require__(14);
 let AuthService = exports.AuthService = class AuthService {
@@ -1194,34 +1281,11 @@ exports.AuthService = AuthService = __decorate([
 
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("uuidv4");
-
-/***/ }),
-/* 28 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.jwtConstants = exports.config = void 0;
-const config = () => ({
-    app: {
-        port: process.env.PORT,
-    },
-    database: {
-        database_host: process.env.DATABASE_HOST,
-        database_name: process.env.DATABASE_NAME,
-    },
-});
-exports.config = config;
-exports.jwtConstants = {
-    secret: 'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
-};
-
 
 /***/ }),
 /* 29 */
@@ -1289,59 +1353,10 @@ exports.sortableTrash = sortableTrash;
 
 /***/ }),
 /* 32 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+/***/ ((module) => {
 
 "use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AuthGuard = void 0;
-const common_1 = __webpack_require__(6);
-const jwt_1 = __webpack_require__(23);
-const configuration_1 = __webpack_require__(28);
-let AuthGuard = exports.AuthGuard = class AuthGuard {
-    constructor(jwtService) {
-        this.jwtService = jwtService;
-    }
-    async canActivate(context) {
-        const request = context.switchToHttp().getRequest();
-        const token = this.extractTokenFromHeader(request);
-        if (!token) {
-            throw new common_1.UnauthorizedException();
-        }
-        try {
-            const payload = await this.jwtService.verifyAsync(token, {
-                secret: configuration_1.jwtConstants.secret,
-            });
-            console.log('payload', payload);
-            request['user'] = payload;
-        }
-        catch {
-            throw new common_1.UnauthorizedException();
-        }
-        return true;
-    }
-    extractTokenFromHeader(request) {
-        console.log(request.headers);
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        console.log('3', token, type);
-        return type === 'Token' ? token : undefined;
-    }
-};
-exports.AuthGuard = AuthGuard = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _a : Object])
-], AuthGuard);
-
+module.exports = require("@nestjs/config");
 
 /***/ })
 /******/ 	]);
@@ -1405,7 +1420,7 @@ exports.AuthGuard = AuthGuard = __decorate([
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("c573574f14a41a97d061")
+/******/ 		__webpack_require__.h = () => ("09240283da70d42bc80a")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

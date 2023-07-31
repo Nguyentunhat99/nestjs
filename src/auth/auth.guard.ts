@@ -5,6 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { error } from 'console';
 import { Request } from 'express';
 import { jwtConstants } from 'src/config/configuration';
 
@@ -17,6 +18,7 @@ export class AuthGuard implements CanActivate {
     const token = this.extractTokenFromHeader(request);
 
     if (!token) {
+      //ko co token
       throw new UnauthorizedException();
     }
     try {
@@ -29,7 +31,11 @@ export class AuthGuard implements CanActivate {
       // so that we can access it in our route handlers
       request['user'] = payload;
     } catch {
-      throw new UnauthorizedException();
+      //Khi token het han
+      throw new UnauthorizedException({
+        message: 'Unauthorized! Access Token was expired!',
+        statusCode: 401,
+      });
     }
     return true;
   }
