@@ -5,20 +5,27 @@ import * as bcrypt from 'bcrypt';
 import { uuid } from 'uuidv4';
 import { JwtService } from '@nestjs/jwt';
 
-import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
+import {
+  RefreshToken,
+  RefreshTokenDocument,
+} from './schemas/refresh_token.schema';
+import { jwtConstants } from 'src/config/configuration';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name) private readonly model: Model<UserDocument>,
+    @InjectModel(User.name) private readonly modelUser: Model<UserDocument>,
+    @InjectModel(RefreshToken.name)
+    private readonly modelRefreshToken: Model<RefreshTokenDocument>,
     private jwtService: JwtService,
   ) {}
   // JWT
   async loginUser(email: string, password: string): Promise<object> {
     return new Promise<object>(async (resolve, reject) => {
       try {
-        const userFind = await this.model
+        const userFind = await this.modelUser
           .findOne({ email })
           .select([
             '-createdAt',
@@ -44,6 +51,18 @@ export class AuthService {
               username: userFind?.username,
             };
             const refreshToken = uuid();
+            let expiredAt = new Date();
+            expiredAt.setSeconds(
+              expiredAt.getSeconds() +
+                parseInt(jwtConstants.jwtExpirationRefresh),
+            );
+            await this.modelRefreshToken.create({
+              token: refreshToken,
+              userId: userFind._id,
+              expiryDate: expiredAt.getTime(),
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
             resolve({
               access_token: await this.jwtService.signAsync(payload),
               refresh_token: refreshToken,
@@ -61,11 +80,59 @@ export class AuthService {
     });
   }
 
+  async RefreshToken(refresh_token: string): Promise<object> {
+    return new Promise<object>(async (resolve, reject) => {
+      try {
+        if (refresh_token === null) {
+          resolve({
+            status: 'error',
+            message: 'Refresh Token is required!',
+          });
+        }
+        const refresh_tokenDB = await this.modelRefreshToken.findOne({
+          token: refresh_token,
+        });
+        if (refresh_tokenDB === null) {
+          resolve({
+            status: 'error',
+            message: 'Refresh token is not in database!',
+          });
+        }
+        const expiryDate: any = refresh_tokenDB?.expiryDate.getTime();
+        const now: any = new Date().getTime();
+        if (expiryDate < now) {
+          await this.modelRefreshToken.deleteOne({
+            where: {
+              userId: refresh_tokenDB?.userId,
+            },
+          });
+          resolve({
+            status: 'error',
+            message:
+              'Refresh token was expired. Please make a new signin request',
+          });
+        }
+        const user = await this.modelUser.findById(refresh_tokenDB?.userId);
+        const payload = {
+          sub: user?._id,
+          username: user?.username,
+        };
+        resolve({
+          status: 'success',
+          access_token: await this.jwtService.signAsync(payload),
+          refresh_token: refresh_token,
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
   async register(user: CreateUserDto): Promise<object> {
     return new Promise<object>(async (resolve, reject) => {
       try {
         const { email, password } = user;
-        const userFind = await this.model.findOne({ email });
+        const userFind = await this.modelUser.findOne({ email });
         if (userFind)
           resolve({
             status: 'error',
@@ -73,7 +140,7 @@ export class AuthService {
           });
         const salt = await bcrypt.genSalt();
         const hashPassword = await bcrypt.hash(password, salt);
-        await new this.model({
+        await new this.modelUser({
           ...user,
           password: hashPassword,
           createdAt: new Date(),
@@ -95,7 +162,7 @@ export class AuthService {
   async validateUser(username: string, password: string): Promise<object> {
     return new Promise<object>(async (resolve, reject) => {
       try {
-        const userFind = await this.model
+        const userFind = await this.modelUser
           .findOne({ username })
           .select([
             '-createdAt',
@@ -142,4 +209,3 @@ export class AuthService {
     };
   }
 }
-
