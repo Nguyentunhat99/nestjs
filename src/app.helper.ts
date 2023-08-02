@@ -36,3 +36,6 @@ export const sortableTrash = (field: string, sort: any) => {
     `;
   }
 };
+
+export const checkRole = () => {};
+

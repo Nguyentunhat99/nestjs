@@ -107,7 +107,7 @@
             <tr>
               <th></th>
               <th scope='col'>#</th>
-              <th scope='col'>_id{{sort.type}}
+              <th scope='col'>_id
               </th>
               <th scope='col'>Username
                 {{{sortable "username" _sort}}}
@@ -115,6 +115,7 @@
               <th scope='col'>Email
                 {{{sortable "email" _sort}}}
               </th>
+              <th>Roles</th>
               <th scope='col'>Action</th>
             </tr>
           </thead>
@@ -141,6 +142,9 @@
                 </td>
                 <td>
                   {{this.email}}
+                </td>
+                <td>
+                  {{this.roles}}
                 </td>
                 <td>
                   {{!-- <a class="btn btn-secondary h4" href="detail/user?{{this._id}}" target="_blank">Detail</a> --}}

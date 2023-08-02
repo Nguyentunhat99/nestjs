@@ -4,7 +4,7 @@ import { AppModule } from './app.module';
 import { join } from 'path';
 import * as hbs from 'hbs';
 
-import { sortable, sortableTrash, sum } from './app.helper';
+import { sortable, sortableTrash, sum, checkRole } from './app.helper';
 
 declare const module: any;
 
@@ -18,6 +18,7 @@ async function bootstrap() {
   hbs.registerHelper('sum', sum);
   hbs.registerHelper('sortable', sortable);
   hbs.registerHelper('sortableTrash', sortableTrash);
+  hbs.registerHelper('checkRole', checkRole);
 
   if (module.hot) {
     module.hot.accept();

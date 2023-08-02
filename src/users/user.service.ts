@@ -7,11 +7,15 @@ import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SortUserDto } from './dto/sort-user.dto';
+// import { Role } from 'src/model/role.enum';
+import { RoleDocument, Role } from './schemas/role.schema';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private readonly model: Model<UserDocument>,
+    @InjectModel(Role.name)
+    private readonly modelRoles: Model<RoleDocument>,
   ) {}
   async loginUser(email: string, password: string): Promise<string> {
     const userFind = await this.model.findOne({ email });
@@ -37,6 +41,7 @@ export class UserService {
       return await new this.model({
         ...user,
         password: hashPassword,
+        roles: ['user'],
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,
@@ -48,7 +53,7 @@ export class UserService {
   async findAll(): Promise<User[]> {
     return await this.model
       .find({ deletedAt: null })
-      .select(['-password', '-createdAt', '-updatedAt', '-deleted'])
+      .select(['-password', '-createdAt', '-updatedAt', '-deleted', '-__v'])
       .exec();
   }
 
@@ -57,6 +62,10 @@ export class UserService {
       .findById(id)
       .select(['-password', '-createdAt', '-updatedAt', '-deleted'])
       .exec();
+  }
+
+  async getRoles(): Promise<Role[]> {
+    return await this.modelRoles.find().select(['-_id']).exec();
   }
 
   async update(id: string, user: UpdateUserDto): Promise<User | null> {

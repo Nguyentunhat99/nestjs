@@ -37,6 +37,7 @@ export class UserController {
     await this.service.createUser({
       ...user,
       username: user.username?.toLowerCase(),
+      email: user.email?.toLowerCase(),
     });
     return res.redirect('/user/getAllUsers');
   }
@@ -49,11 +50,11 @@ export class UserController {
   ) {
     if (request.query.hasOwnProperty('_sort')) {
       const data = await this.service.sort(sort);
+
       return res.render('home.hbs', {
         data: data,
       });
     }
-
     const data = await this.service.findAll();
     return res.render('home.hbs', {
       data: data,
@@ -63,8 +64,10 @@ export class UserController {
   @Get('/edit/:id')
   async findOne(@Res() res: Response, @Param('id') id: string) {
     const data = await this.service.findOne(id);
+    const roles = await this.service.getRoles();
     return res.render('edit.hbs', {
       data: data,
+      roles: roles,
     });
   }
 

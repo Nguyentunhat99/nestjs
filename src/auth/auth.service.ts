@@ -49,6 +49,7 @@ export class AuthService {
             const payload = {
               sub: userFind?._id,
               username: userFind?.username,
+              roles: userFind?.roles,
             };
             const refreshToken = uuid();
             let expiredAt = new Date();

@@ -57,6 +57,20 @@
               />
             </div>
           </div>
+          <div class='form-check align-items-center'>
+            {{#each roles}}
+              <div>
+                <input
+                  class='form-check-input mt-2'
+                  type='checkbox'
+                  name='roles[]'
+                  value='{{this.role_name}}'
+                  id='defaultCheck1'
+                />
+                <label class='h5'>{{this.role_name}}</label>
+              </div>
+            {{/each}}
+          </div>
           <div class='form-row col-md-12'><button
               type='submit'
               class='btn btn-primary'

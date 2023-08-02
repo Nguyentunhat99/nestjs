@@ -14,6 +14,9 @@ import { AuthGuard } from './auth.guard';
 
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { HasRoles } from './has-roles.decorator';
+import { Role } from 'src/model/role.enum';
+import { RolesGuard } from './roles.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +30,7 @@ export class AuthController {
       ...user,
       username: user.username?.toLowerCase(),
     });
+
     return res.status(HttpStatus.CREATED).json(data);
   }
   //JWT
@@ -38,11 +42,15 @@ export class AuthController {
   }
 
   @Post('/refresh-token')
-  async RefreshToken(@Req() request: Request): Promise<object> {
+  async RefreshToken(
+    @Res() res: Response,
+    @Req() request: Request,
+  ): Promise<object> {
     return this.AuthService.RefreshToken(request.body.refresh_token);
   }
 
-  @UseGuards(AuthGuard)
+  @HasRoles(Role.Admin)
+  @UseGuards(AuthGuard, RolesGuard)
   @Get('/profile')
   getProfile(@Req() request: Request) {
     return request.user;
