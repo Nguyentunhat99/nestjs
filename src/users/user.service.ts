@@ -17,23 +17,14 @@ export class UserService {
     @InjectModel(Role.name)
     private readonly modelRoles: Model<RoleDocument>,
   ) {}
-  async loginUser(email: string, password: string): Promise<string> {
-    const userFind = await this.model.findOne({ email });
-    if (userFind && userFind.password && userFind.password.length > 0) {
-      const match = await bcrypt.compare(password, userFind.password);
-      if (match) return 'Credentials are correct!';
-      return 'Invalid Credentials!';
-    }
-    return 'Invalid Invalid!';
-  }
 
   async createUser(user: CreateUserDto): Promise<any> {
-    const { email, password } = user;
-    const userFind = await this.model.findOne({ email });
+    const { username, email, password } = user;
+    const userFind = await this.model.find({ email, username });
     if (userFind) {
       return {
         status: 'error',
-        message: 'Failed! Email is already in use!',
+        message: 'Failed! Email or Username is already in use!',
       };
     } else {
       const salt = await bcrypt.genSalt();

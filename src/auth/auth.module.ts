@@ -9,7 +9,7 @@ import { AuthService } from './auth.service';
 import { User, UserSchema } from 'src/users/schemas/user.schema';
 import { UserModule } from 'src/users/user.module';
 import { jwtConstants } from 'src/config/configuration';
-import { JwtStrategy } from './jwt.strategy';
+// import { JwtStrategy } from './jwt.strategy';
 import {
   RefreshToken,
   RefreshTokenSchema,
@@ -30,7 +30,7 @@ import {
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -23,13 +23,6 @@ import { SortUserDto } from './dto/sort-user.dto';
 export class UserController {
   constructor(private readonly service: UserService) {}
 
-  @HttpCode(HttpStatus.OK)
-  @Post('/login')
-  async loginUser(@Body() user: CreateUserDto): Promise<any> {
-    const { email, password } = user;
-    return this.service.loginUser(email, password);
-  }
-
   @Post('/create')
   async createUser(@Res() res: Response, @Body() user: CreateUserDto) {
     console.log(user.username?.toLowerCase());

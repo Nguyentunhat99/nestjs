@@ -197,10 +197,13 @@ const core_1 = __webpack_require__(4);
 const app_module_1 = __webpack_require__(5);
 const path_1 = __webpack_require__(39);
 const hbs = __webpack_require__(40);
-const app_helper_1 = __webpack_require__(41);
+const helmet_1 = __webpack_require__(41);
+const app_helper_1 = __webpack_require__(42);
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    app.enableCors();
     await app.listen(3000);
+    0;
     app.useStaticAssets((0, path_1.join)(__dirname, '..', './src/public'));
     app.setBaseViewsDir((0, path_1.join)(__dirname, '..', './src/views'));
     app.setViewEngine('hbs');
@@ -208,6 +211,24 @@ async function bootstrap() {
     hbs.registerHelper('sortable', app_helper_1.sortable);
     hbs.registerHelper('sortableTrash', app_helper_1.sortableTrash);
     hbs.registerHelper('checkRole', app_helper_1.checkRole);
+    app.use((0, helmet_1.default)({
+        crossOriginEmbedderPolicy: false,
+        contentSecurityPolicy: {
+            directives: {
+                imgSrc: [
+                    `'self'`,
+                    'data:',
+                    'apollo-server-landing-page.cdn.apollographql.com',
+                ],
+                scriptSrc: [`'self'`, `https: 'unsafe-inline'`],
+                manifestSrc: [
+                    `'self'`,
+                    'apollo-server-landing-page.cdn.apollographql.com',
+                ],
+                frameSrc: [`'self'`, 'sandbox.embed.apollographql.com'],
+            },
+        },
+    }));
     if (true) {
         module.hot.accept();
         module.hot.dispose(() => app.close());
@@ -242,9 +263,9 @@ const mongoose_1 = __webpack_require__(7);
 const config_1 = __webpack_require__(8);
 const app_controller_1 = __webpack_require__(9);
 const app_service_1 = __webpack_require__(10);
-const user_module_1 = __webpack_require__(23);
-const SortMiddleware_middleware_1 = __webpack_require__(31);
-const auth_module_1 = __webpack_require__(32);
+const user_module_1 = __webpack_require__(11);
+const SortMiddleware_middleware_1 = __webpack_require__(23);
+const auth_module_1 = __webpack_require__(24);
 let AppModule = exports.AppModule = class AppModule {
     configure(consumer) {
         consumer.apply(SortMiddleware_middleware_1.SortMiddleWare).forRoutes('user');
@@ -302,31 +323,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a, _b, _c, _d;
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AppController = void 0;
 const common_1 = __webpack_require__(6);
 const app_service_1 = __webpack_require__(10);
-const local_auth_guard_1 = __webpack_require__(11);
-const auth_service_1 = __webpack_require__(13);
-const jwt_auth_guard_1 = __webpack_require__(21);
-const express_1 = __webpack_require__(22);
 let AppController = exports.AppController = class AppController {
-    constructor(appService, AuthService) {
+    constructor(appService) {
         this.appService = appService;
-        this.AuthService = AuthService;
     }
     root() {
         return { message: 'Hello world 123!' };
-    }
-    async login(request) {
-        return this.AuthService.login(request.user);
-    }
-    getProfile(request) {
-        return request.user;
     }
 };
 __decorate([
@@ -336,25 +343,9 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AppController.prototype, "root", null);
-__decorate([
-    (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
-    (0, common_1.Post)('passport/login'),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_c = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _c : Object]),
-    __metadata("design:returntype", Promise)
-], AppController.prototype, "login", null);
-__decorate([
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Get)('profile'),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _d : Object]),
-    __metadata("design:returntype", void 0)
-], AppController.prototype, "getProfile", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof app_service_1.AppService !== "undefined" && app_service_1.AppService) === "function" ? _a : Object, typeof (_b = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _b : Object])
+    __metadata("design:paramtypes", [typeof (_a = typeof app_service_1.AppService !== "undefined" && app_service_1.AppService) === "function" ? _a : Object])
 ], AppController);
 
 
@@ -396,461 +387,13 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LocalAuthGuard = void 0;
-const common_1 = __webpack_require__(6);
-const passport_1 = __webpack_require__(12);
-let LocalAuthGuard = exports.LocalAuthGuard = class LocalAuthGuard extends (0, passport_1.AuthGuard)('local') {
-};
-exports.LocalAuthGuard = LocalAuthGuard = __decorate([
-    (0, common_1.Injectable)()
-], LocalAuthGuard);
-
-
-/***/ }),
-/* 12 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("@nestjs/passport");
-
-/***/ }),
-/* 13 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a, _b, _c;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AuthService = void 0;
-const common_1 = __webpack_require__(6);
-const mongoose_1 = __webpack_require__(7);
-const mongoose_2 = __webpack_require__(14);
-const bcrypt = __webpack_require__(15);
-const uuidv4_1 = __webpack_require__(16);
-const jwt_1 = __webpack_require__(17);
-const user_schema_1 = __webpack_require__(18);
-const refresh_token_schema_1 = __webpack_require__(19);
-const configuration_1 = __webpack_require__(20);
-let AuthService = exports.AuthService = class AuthService {
-    constructor(modelUser, modelRefreshToken, jwtService) {
-        this.modelUser = modelUser;
-        this.modelRefreshToken = modelRefreshToken;
-        this.jwtService = jwtService;
-    }
-    async loginUser(email, password) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const userFind = await this.modelUser
-                    .findOne({ email })
-                    .select([
-                    '-createdAt',
-                    '-updatedAt',
-                    '-deleted',
-                    '-deletedAt',
-                    '-__v',
-                ])
-                    .exec();
-                const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
-                if (userFind) {
-                    if (!isCheckPassword) {
-                        resolve({
-                            status: 'error',
-                            message: 'Wrong password',
-                        });
-                    }
-                    else {
-                        const payload = {
-                            sub: userFind?._id,
-                            username: userFind?.username,
-                            roles: userFind?.roles,
-                        };
-                        const refreshToken = (0, uuidv4_1.uuid)();
-                        let expiredAt = new Date();
-                        expiredAt.setSeconds(expiredAt.getSeconds() +
-                            parseInt(configuration_1.jwtConstants.jwtExpirationRefresh));
-                        await this.modelRefreshToken.create({
-                            token: refreshToken,
-                            userId: userFind._id,
-                            expiryDate: expiredAt.getTime(),
-                            createdAt: new Date(),
-                            updatedAt: new Date(),
-                        });
-                        resolve({
-                            access_token: await this.jwtService.signAsync(payload),
-                            refresh_token: refreshToken,
-                        });
-                    }
-                }
-                else {
-                    resolve({
-                        status: 'error',
-                        message: `Your email does not exist. Please re-enter!`,
-                    });
-                }
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
-    }
-    async RefreshToken(refresh_token) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                if (refresh_token === null) {
-                    resolve({
-                        status: 'error',
-                        message: 'Refresh Token is required!',
-                    });
-                }
-                const refresh_tokenDB = await this.modelRefreshToken.findOne({
-                    token: refresh_token,
-                });
-                if (refresh_tokenDB === null) {
-                    resolve({
-                        status: 'error',
-                        message: 'Refresh token is not in database!',
-                    });
-                }
-                const expiryDate = refresh_tokenDB?.expiryDate.getTime();
-                const now = new Date().getTime();
-                if (expiryDate < now) {
-                    await this.modelRefreshToken.deleteOne({
-                        where: {
-                            userId: refresh_tokenDB?.userId,
-                        },
-                    });
-                    resolve({
-                        status: 'error',
-                        message: 'Refresh token was expired. Please make a new signin request',
-                    });
-                }
-                const user = await this.modelUser.findById(refresh_tokenDB?.userId);
-                const payload = {
-                    sub: user?._id,
-                    username: user?.username,
-                };
-                resolve({
-                    status: 'success',
-                    access_token: await this.jwtService.signAsync(payload),
-                    refresh_token: refresh_token,
-                });
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
-    }
-    async register(user) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const { email, password } = user;
-                const userFind = await this.modelUser.findOne({ email });
-                if (userFind)
-                    resolve({
-                        status: 'error',
-                        message: 'Failed! Email is already in use!',
-                    });
-                const salt = await bcrypt.genSalt();
-                const hashPassword = await bcrypt.hash(password, salt);
-                await new this.modelUser({
-                    ...user,
-                    password: hashPassword,
-                    createdAt: new Date(),
-                    updatedAt: new Date(),
-                    deletedAt: null,
-                    deleted: false,
-                }).save();
-                resolve({
-                    status: 'success',
-                    message: 'Registration successfully',
-                });
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
-    }
-    async validateUser(username, password) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const userFind = await this.modelUser
-                    .findOne({ username })
-                    .select([
-                    '-createdAt',
-                    '-updatedAt',
-                    '-deleted',
-                    '-deletedAt',
-                    '-__v',
-                ])
-                    .exec();
-                const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
-                console.log(userFind);
-                if (userFind) {
-                    if (!isCheckPassword) {
-                        resolve({
-                            status: 'error',
-                            message: 'Wrong password',
-                        });
-                    }
-                    else {
-                        resolve({
-                            userInfo: userFind,
-                        });
-                    }
-                }
-                else {
-                    resolve({
-                        status: 'error',
-                        message: `Your email does not exist. Please re-enter!`,
-                    });
-                }
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
-    }
-    async login(user) {
-        const { _id, username } = user.userInfo;
-        const payload = { sub: _id, username: username };
-        return {
-            access_token: this.jwtService.sign(payload),
-        };
-    }
-};
-exports.AuthService = AuthService = __decorate([
-    (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
-    __param(1, (0, mongoose_1.InjectModel)(refresh_token_schema_1.RefreshToken.name)),
-    __metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _b : Object, typeof (_c = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _c : Object])
-], AuthService);
-
-
-/***/ }),
-/* 14 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("mongoose");
-
-/***/ }),
-/* 15 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("bcrypt");
-
-/***/ }),
-/* 16 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("uuidv4");
-
-/***/ }),
-/* 17 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("@nestjs/jwt");
-
-/***/ }),
-/* 18 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a, _b, _c, _d, _e;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.UserSchema = exports.User = void 0;
-const mongoose_1 = __webpack_require__(7);
-let User = exports.User = class User {
-};
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", String)
-], User.prototype, "username", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], User.prototype, "email", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], User.prototype, "password", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", Array)
-], User.prototype, "roles", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], User.prototype, "completedAt", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
-], User.prototype, "createdAt", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object)
-], User.prototype, "updatedAt", void 0);
-__decorate([
-    (0, mongoose_1.Prop)(),
-    __metadata("design:type", typeof (_d = typeof Date !== "undefined" && Date) === "function" ? _d : Object)
-], User.prototype, "deletedAt", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", typeof (_e = typeof Boolean !== "undefined" && Boolean) === "function" ? _e : Object)
-], User.prototype, "deleted", void 0);
-exports.User = User = __decorate([
-    (0, mongoose_1.Schema)()
-], User);
-exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
-
-
-/***/ }),
-/* 19 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a, _b, _c;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RefreshTokenSchema = exports.RefreshToken = void 0;
-const mongoose_1 = __webpack_require__(7);
-let RefreshToken = exports.RefreshToken = class RefreshToken {
-};
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], RefreshToken.prototype, "token", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", String)
-], RefreshToken.prototype, "userId", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
-], RefreshToken.prototype, "expiryDate", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
-], RefreshToken.prototype, "createdAt", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ required: true }),
-    __metadata("design:type", typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object)
-], RefreshToken.prototype, "updatedAt", void 0);
-exports.RefreshToken = RefreshToken = __decorate([
-    (0, mongoose_1.Schema)()
-], RefreshToken);
-exports.RefreshTokenSchema = mongoose_1.SchemaFactory.createForClass(RefreshToken);
-
-
-/***/ }),
-/* 20 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.jwtConstants = exports.config = void 0;
-const config = () => ({
-    app: {
-        port: process.env.PORT,
-    },
-    database: {
-        database_host: process.env.DATABASE_HOST,
-        database_name: process.env.DATABASE_NAME,
-    },
-});
-exports.config = config;
-exports.jwtConstants = {
-    secret: 'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
-    jwtExpiration: '360s',
-    jwtExpirationRefresh: '480s',
-};
-
-
-/***/ }),
-/* 21 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.JwtAuthGuard = void 0;
-const common_1 = __webpack_require__(6);
-const passport_1 = __webpack_require__(12);
-let JwtAuthGuard = exports.JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
-};
-exports.JwtAuthGuard = JwtAuthGuard = __decorate([
-    (0, common_1.Injectable)()
-], JwtAuthGuard);
-
-
-/***/ }),
-/* 22 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("express");
-
-/***/ }),
-/* 23 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserModule = void 0;
 const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
-const user_service_1 = __webpack_require__(24);
-const user_controller_1 = __webpack_require__(26);
-const user_schema_1 = __webpack_require__(18);
-const role_schema_1 = __webpack_require__(25);
+const user_service_1 = __webpack_require__(12);
+const user_controller_1 = __webpack_require__(17);
+const user_schema_1 = __webpack_require__(15);
+const role_schema_1 = __webpack_require__(16);
 let UserModule = exports.UserModule = class UserModule {
 };
 exports.UserModule = UserModule = __decorate([
@@ -867,7 +410,7 @@ exports.UserModule = UserModule = __decorate([
 
 
 /***/ }),
-/* 24 */
+/* 12 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -889,32 +432,22 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserService = void 0;
 const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
-const mongoose_2 = __webpack_require__(14);
-const bcrypt = __webpack_require__(15);
-const user_schema_1 = __webpack_require__(18);
-const role_schema_1 = __webpack_require__(25);
+const mongoose_2 = __webpack_require__(13);
+const bcrypt = __webpack_require__(14);
+const user_schema_1 = __webpack_require__(15);
+const role_schema_1 = __webpack_require__(16);
 let UserService = exports.UserService = class UserService {
     constructor(model, modelRoles) {
         this.model = model;
         this.modelRoles = modelRoles;
     }
-    async loginUser(email, password) {
-        const userFind = await this.model.findOne({ email });
-        if (userFind && userFind.password && userFind.password.length > 0) {
-            const match = await bcrypt.compare(password, userFind.password);
-            if (match)
-                return 'Credentials are correct!';
-            return 'Invalid Credentials!';
-        }
-        return 'Invalid Invalid!';
-    }
     async createUser(user) {
-        const { email, password } = user;
-        const userFind = await this.model.findOne({ email });
+        const { username, email, password } = user;
+        const userFind = await this.model.find({ email, username });
         if (userFind) {
             return {
                 status: 'error',
-                message: 'Failed! Email is already in use!',
+                message: 'Failed! Email or Username is already in use!',
             };
         }
         else {
@@ -1046,7 +579,84 @@ exports.UserService = UserService = __decorate([
 
 
 /***/ }),
-/* 25 */
+/* 13 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("mongoose");
+
+/***/ }),
+/* 14 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("bcrypt");
+
+/***/ }),
+/* 15 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b, _c, _d, _e;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.UserSchema = exports.User = void 0;
+const mongoose_1 = __webpack_require__(7);
+let User = exports.User = class User {
+};
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], User.prototype, "username", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], User.prototype, "email", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], User.prototype, "password", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", Array)
+], User.prototype, "roles", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], User.prototype, "completedAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+], User.prototype, "createdAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object)
+], User.prototype, "updatedAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)(),
+    __metadata("design:type", typeof (_d = typeof Date !== "undefined" && Date) === "function" ? _d : Object)
+], User.prototype, "deletedAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", typeof (_e = typeof Boolean !== "undefined" && Boolean) === "function" ? _e : Object)
+], User.prototype, "deleted", void 0);
+exports.User = User = __decorate([
+    (0, mongoose_1.Schema)()
+], User);
+exports.UserSchema = mongoose_1.SchemaFactory.createForClass(User);
+
+
+/***/ }),
+/* 16 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1076,7 +686,7 @@ exports.RoleSchema = mongoose_1.SchemaFactory.createForClass(Role);
 
 
 /***/ }),
-/* 26 */
+/* 17 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1093,22 +703,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UserController = void 0;
 const common_1 = __webpack_require__(6);
-const express_1 = __webpack_require__(22);
-const user_service_1 = __webpack_require__(24);
-const create_user_dto_1 = __webpack_require__(27);
-const update_user_dto_1 = __webpack_require__(29);
-const sort_user_dto_1 = __webpack_require__(30);
+const express_1 = __webpack_require__(18);
+const user_service_1 = __webpack_require__(12);
+const create_user_dto_1 = __webpack_require__(19);
+const update_user_dto_1 = __webpack_require__(21);
+const sort_user_dto_1 = __webpack_require__(22);
 let UserController = exports.UserController = class UserController {
     constructor(service) {
         this.service = service;
-    }
-    async loginUser(user) {
-        const { email, password } = user;
-        return this.service.loginUser(email, password);
     }
     async createUser(res, user) {
         console.log(user.username?.toLowerCase());
@@ -1184,19 +790,11 @@ let UserController = exports.UserController = class UserController {
     }
 };
 __decorate([
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, common_1.Post)('/login'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof create_user_dto_1.CreateUserDto !== "undefined" && create_user_dto_1.CreateUserDto) === "function" ? _b : Object]),
-    __metadata("design:returntype", typeof (_c = typeof Promise !== "undefined" && Promise) === "function" ? _c : Object)
-], UserController.prototype, "loginUser", null);
-__decorate([
     (0, common_1.Post)('/create'),
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_d = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _d : Object, typeof (_e = typeof create_user_dto_1.CreateUserDto !== "undefined" && create_user_dto_1.CreateUserDto) === "function" ? _e : Object]),
+    __metadata("design:paramtypes", [typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object, typeof (_c = typeof create_user_dto_1.CreateUserDto !== "undefined" && create_user_dto_1.CreateUserDto) === "function" ? _c : Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "createUser", null);
 __decorate([
@@ -1205,7 +803,7 @@ __decorate([
     __param(1, (0, common_1.Req)()),
     __param(2, (0, common_1.Query)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_f = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _f : Object, typeof (_g = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _g : Object, typeof (_h = typeof sort_user_dto_1.SortUserDto !== "undefined" && sort_user_dto_1.SortUserDto) === "function" ? _h : Object]),
+    __metadata("design:paramtypes", [typeof (_d = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _d : Object, typeof (_e = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _e : Object, typeof (_f = typeof sort_user_dto_1.SortUserDto !== "undefined" && sort_user_dto_1.SortUserDto) === "function" ? _f : Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "index", null);
 __decorate([
@@ -1213,7 +811,7 @@ __decorate([
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_j = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _j : Object, String]),
+    __metadata("design:paramtypes", [typeof (_g = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _g : Object, String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "findOne", null);
 __decorate([
@@ -1222,7 +820,7 @@ __decorate([
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_k = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _k : Object, String, typeof (_l = typeof update_user_dto_1.UpdateUserDto !== "undefined" && update_user_dto_1.UpdateUserDto) === "function" ? _l : Object]),
+    __metadata("design:paramtypes", [typeof (_h = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _h : Object, String, typeof (_j = typeof update_user_dto_1.UpdateUserDto !== "undefined" && update_user_dto_1.UpdateUserDto) === "function" ? _j : Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "update", null);
 __decorate([
@@ -1230,14 +828,14 @@ __decorate([
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_m = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _m : Object, String]),
+    __metadata("design:paramtypes", [typeof (_k = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _k : Object, String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "delete", null);
 __decorate([
     (0, common_1.Get)('/trash'),
     __param(0, (0, common_1.Res)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_o = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _o : Object]),
+    __metadata("design:paramtypes", [typeof (_l = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _l : Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "trashUser", null);
 __decorate([
@@ -1245,7 +843,7 @@ __decorate([
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_p = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _p : Object, String]),
+    __metadata("design:paramtypes", [typeof (_m = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _m : Object, String]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "destroy", null);
 __decorate([
@@ -1254,7 +852,7 @@ __decorate([
     __param(1, (0, common_1.Param)('id')),
     __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_q = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _q : Object, String, typeof (_r = typeof update_user_dto_1.UpdateUserDto !== "undefined" && update_user_dto_1.UpdateUserDto) === "function" ? _r : Object]),
+    __metadata("design:paramtypes", [typeof (_o = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _o : Object, String, typeof (_p = typeof update_user_dto_1.UpdateUserDto !== "undefined" && update_user_dto_1.UpdateUserDto) === "function" ? _p : Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "restore", null);
 __decorate([
@@ -1262,7 +860,7 @@ __decorate([
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_s = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _s : Object, typeof (_t = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _t : Object]),
+    __metadata("design:paramtypes", [typeof (_q = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _q : Object, typeof (_r = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _r : Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "handleActionForm", null);
 __decorate([
@@ -1270,7 +868,7 @@ __decorate([
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_u = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _u : Object, typeof (_v = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _v : Object]),
+    __metadata("design:paramtypes", [typeof (_s = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _s : Object, typeof (_t = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _t : Object]),
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "Search", null);
 exports.UserController = UserController = __decorate([
@@ -1280,21 +878,28 @@ exports.UserController = UserController = __decorate([
 
 
 /***/ }),
-/* 27 */
+/* 18 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("express");
+
+/***/ }),
+/* 19 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.CreateUserDto = void 0;
-const base_user_dto_1 = __webpack_require__(28);
+const base_user_dto_1 = __webpack_require__(20);
 class CreateUserDto extends base_user_dto_1.BaseUserDto {
 }
 exports.CreateUserDto = CreateUserDto;
 
 
 /***/ }),
-/* 28 */
+/* 20 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1307,35 +912,35 @@ exports.BaseUserDto = BaseUserDto;
 
 
 /***/ }),
-/* 29 */
+/* 21 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.UpdateUserDto = void 0;
-const base_user_dto_1 = __webpack_require__(28);
+const base_user_dto_1 = __webpack_require__(20);
 class UpdateUserDto extends base_user_dto_1.BaseUserDto {
 }
 exports.UpdateUserDto = UpdateUserDto;
 
 
 /***/ }),
-/* 30 */
+/* 22 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SortUserDto = void 0;
-const base_user_dto_1 = __webpack_require__(28);
+const base_user_dto_1 = __webpack_require__(20);
 class SortUserDto extends base_user_dto_1.BaseUserDto {
 }
 exports.SortUserDto = SortUserDto;
 
 
 /***/ }),
-/* 31 */
+/* 23 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1379,7 +984,7 @@ exports.SortMiddleWare = SortMiddleWare = __decorate([
 
 
 /***/ }),
-/* 32 */
+/* 24 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1394,16 +999,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthModule = void 0;
 const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
-const jwt_1 = __webpack_require__(17);
-const passport_1 = __webpack_require__(12);
-const local_strategy_1 = __webpack_require__(33);
-const auth_controller_1 = __webpack_require__(35);
-const auth_service_1 = __webpack_require__(13);
-const user_schema_1 = __webpack_require__(18);
-const user_module_1 = __webpack_require__(23);
-const configuration_1 = __webpack_require__(20);
-const jwt_strategy_1 = __webpack_require__(37);
-const refresh_token_schema_1 = __webpack_require__(19);
+const jwt_1 = __webpack_require__(25);
+const passport_1 = __webpack_require__(26);
+const local_strategy_1 = __webpack_require__(27);
+const auth_controller_1 = __webpack_require__(33);
+const auth_service_1 = __webpack_require__(29);
+const user_schema_1 = __webpack_require__(15);
+const user_module_1 = __webpack_require__(11);
+const configuration_1 = __webpack_require__(32);
+const refresh_token_schema_1 = __webpack_require__(31);
 let AuthModule = exports.AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule = __decorate([
@@ -1422,14 +1026,28 @@ exports.AuthModule = AuthModule = __decorate([
             ]),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy],
+        providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);
 
 
 /***/ }),
-/* 33 */
+/* 25 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("@nestjs/jwt");
+
+/***/ }),
+/* 26 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("@nestjs/passport");
+
+/***/ }),
+/* 27 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1446,10 +1064,10 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.LocalStrategy = void 0;
-const passport_local_1 = __webpack_require__(34);
-const passport_1 = __webpack_require__(12);
+const passport_local_1 = __webpack_require__(28);
+const passport_1 = __webpack_require__(26);
 const common_1 = __webpack_require__(6);
-const auth_service_1 = __webpack_require__(13);
+const auth_service_1 = __webpack_require__(29);
 let LocalStrategy = exports.LocalStrategy = class LocalStrategy extends (0, passport_1.PassportStrategy)(passport_local_1.Strategy) {
     constructor(authService) {
         super();
@@ -1470,14 +1088,14 @@ exports.LocalStrategy = LocalStrategy = __decorate([
 
 
 /***/ }),
-/* 34 */
+/* 28 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("passport-local");
 
 /***/ }),
-/* 35 */
+/* 29 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1494,17 +1112,277 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.AuthService = void 0;
+const common_1 = __webpack_require__(6);
+const mongoose_1 = __webpack_require__(7);
+const mongoose_2 = __webpack_require__(13);
+const bcrypt = __webpack_require__(14);
+const uuidv4_1 = __webpack_require__(30);
+const jwt_1 = __webpack_require__(25);
+const user_schema_1 = __webpack_require__(15);
+const refresh_token_schema_1 = __webpack_require__(31);
+const configuration_1 = __webpack_require__(32);
+let AuthService = exports.AuthService = class AuthService {
+    constructor(modelUser, modelRefreshToken, jwtService) {
+        this.modelUser = modelUser;
+        this.modelRefreshToken = modelRefreshToken;
+        this.jwtService = jwtService;
+    }
+    async register(user) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const { email, password } = user;
+                const userFind = await this.modelUser.findOne({ email });
+                if (userFind)
+                    resolve({
+                        status: 'error',
+                        message: 'Failed! Email is already in use!',
+                    });
+                const salt = await bcrypt.genSalt();
+                const hashPassword = await bcrypt.hash(password, salt);
+                await new this.modelUser({
+                    ...user,
+                    password: hashPassword,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    deletedAt: null,
+                    deleted: false,
+                }).save();
+                resolve({
+                    status: 'success',
+                    message: 'Registration successfully',
+                });
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
+    }
+    async RefreshToken(refresh_token) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (refresh_token === null) {
+                    resolve({
+                        status: 'error',
+                        message: 'Refresh Token is required!',
+                    });
+                }
+                const refresh_tokenDB = await this.modelRefreshToken.findOne({
+                    token: refresh_token,
+                });
+                if (refresh_tokenDB === null) {
+                    resolve({
+                        status: 'error',
+                        message: 'Refresh token is not in database!',
+                    });
+                }
+                const expiryDate = refresh_tokenDB?.expiryDate.getTime();
+                const now = new Date().getTime();
+                if (expiryDate < now) {
+                    await this.modelRefreshToken.deleteOne({
+                        where: {
+                            userId: refresh_tokenDB?.userId,
+                        },
+                    });
+                    resolve({
+                        status: 'error',
+                        message: 'Refresh token was expired. Please make a new signin request',
+                    });
+                }
+                const user = await this.modelUser.findById(refresh_tokenDB?.userId);
+                const payload = {
+                    sub: user?._id,
+                    username: user?.username,
+                };
+                resolve({
+                    status: 'success',
+                    access_token: await this.jwtService.signAsync(payload),
+                    refresh_token: refresh_token,
+                });
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
+    }
+    async validateUser(username, password) {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const userFind = await this.modelUser
+                    .findOne({ username })
+                    .select([
+                    '-createdAt',
+                    '-updatedAt',
+                    '-deleted',
+                    '-deletedAt',
+                    '-__v',
+                ])
+                    .exec();
+                const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
+                console.log(userFind);
+                if (userFind) {
+                    if (!isCheckPassword) {
+                        resolve({
+                            status: 'error',
+                            message: 'Wrong password',
+                        });
+                    }
+                    else {
+                        resolve({
+                            userInfo: userFind,
+                        });
+                    }
+                }
+                else {
+                    resolve({
+                        status: 'error',
+                        message: `Your email does not exist. Please re-enter!`,
+                    });
+                }
+            }
+            catch (error) {
+                reject(error);
+            }
+        });
+    }
+    async login(user) {
+        const { _id, username, roles, email } = user.userInfo;
+        const payload = { sub: _id, username: username, roles: roles, email };
+        const refreshToken = (0, uuidv4_1.uuid)();
+        let expiredAt = new Date();
+        expiredAt.setSeconds(expiredAt.getSeconds() + parseInt(configuration_1.jwtConstants.jwtExpirationRefresh));
+        await this.modelRefreshToken.create({
+            token: refreshToken,
+            userId: _id,
+            expiryDate: expiredAt.getTime(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        });
+        return {
+            access_token: this.jwtService.sign(payload),
+            refresh_token: refreshToken,
+        };
+    }
+};
+exports.AuthService = AuthService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, mongoose_1.InjectModel)(user_schema_1.User.name)),
+    __param(1, (0, mongoose_1.InjectModel)(refresh_token_schema_1.RefreshToken.name)),
+    __metadata("design:paramtypes", [typeof (_a = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _a : Object, typeof (_b = typeof mongoose_2.Model !== "undefined" && mongoose_2.Model) === "function" ? _b : Object, typeof (_c = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _c : Object])
+], AuthService);
+
+
+/***/ }),
+/* 30 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("uuidv4");
+
+/***/ }),
+/* 31 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a, _b, _c;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.RefreshTokenSchema = exports.RefreshToken = void 0;
+const mongoose_1 = __webpack_require__(7);
+let RefreshToken = exports.RefreshToken = class RefreshToken {
+};
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], RefreshToken.prototype, "token", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], RefreshToken.prototype, "userId", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", typeof (_a = typeof Date !== "undefined" && Date) === "function" ? _a : Object)
+], RefreshToken.prototype, "expiryDate", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", typeof (_b = typeof Date !== "undefined" && Date) === "function" ? _b : Object)
+], RefreshToken.prototype, "createdAt", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", typeof (_c = typeof Date !== "undefined" && Date) === "function" ? _c : Object)
+], RefreshToken.prototype, "updatedAt", void 0);
+exports.RefreshToken = RefreshToken = __decorate([
+    (0, mongoose_1.Schema)()
+], RefreshToken);
+exports.RefreshTokenSchema = mongoose_1.SchemaFactory.createForClass(RefreshToken);
+
+
+/***/ }),
+/* 32 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.jwtConstants = exports.config = void 0;
+const config = () => ({
+    app: {
+        port: process.env.PORT,
+    },
+    database: {
+        database_host: process.env.DATABASE_HOST,
+        database_name: process.env.DATABASE_NAME,
+    },
+});
+exports.config = config;
+exports.jwtConstants = {
+    secret: 'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
+    jwtExpiration: '360s',
+    jwtExpirationRefresh: '480s',
+};
+
+
+/***/ }),
+/* 33 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthController = void 0;
 const common_1 = __webpack_require__(6);
-const express_1 = __webpack_require__(22);
-const auth_guard_1 = __webpack_require__(36);
-const auth_service_1 = __webpack_require__(13);
-const create_user_dto_1 = __webpack_require__(27);
-const has_roles_decorator_1 = __webpack_require__(42);
-const role_enum_1 = __webpack_require__(43);
-const roles_guard_1 = __webpack_require__(44);
+const express_1 = __webpack_require__(18);
+const auth_guard_1 = __webpack_require__(34);
+const auth_service_1 = __webpack_require__(29);
+const create_user_dto_1 = __webpack_require__(19);
+const has_roles_decorator_1 = __webpack_require__(35);
+const role_enum_1 = __webpack_require__(36);
+const roles_guard_1 = __webpack_require__(37);
+const local_auth_guard_1 = __webpack_require__(38);
 let AuthController = exports.AuthController = class AuthController {
     constructor(AuthService) {
         this.AuthService = AuthService;
@@ -1516,12 +1394,11 @@ let AuthController = exports.AuthController = class AuthController {
         });
         return res.status(common_1.HttpStatus.CREATED).json(data);
     }
-    async loginUser(user) {
-        const { email, password } = user;
-        return this.AuthService.loginUser(email, password);
-    }
     async RefreshToken(res, request) {
         return this.AuthService.RefreshToken(request.body.refresh_token);
+    }
+    async login(request) {
+        return this.AuthService.login(request.user);
     }
     getProfile(request) {
         return request.user;
@@ -1536,28 +1413,28 @@ __decorate([
     __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
 ], AuthController.prototype, "register", null);
 __decorate([
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    (0, common_1.Post)('/login'),
-    __param(0, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof create_user_dto_1.CreateUserDto !== "undefined" && create_user_dto_1.CreateUserDto) === "function" ? _e : Object]),
-    __metadata("design:returntype", typeof (_f = typeof Promise !== "undefined" && Promise) === "function" ? _f : Object)
-], AuthController.prototype, "loginUser", null);
-__decorate([
     (0, common_1.Post)('/refresh-token'),
     __param(0, (0, common_1.Res)()),
     __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_g = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _g : Object, typeof (_h = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _h : Object]),
-    __metadata("design:returntype", typeof (_j = typeof Promise !== "undefined" && Promise) === "function" ? _j : Object)
+    __metadata("design:paramtypes", [typeof (_e = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _e : Object, typeof (_f = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _f : Object]),
+    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
 ], AuthController.prototype, "RefreshToken", null);
+__decorate([
+    (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
+    (0, common_1.Post)('/login'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_h = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _h : Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "login", null);
 __decorate([
     (0, has_roles_decorator_1.HasRoles)(role_enum_1.Role.Admin),
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.Get)('/profile'),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_k = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _k : Object]),
+    __metadata("design:paramtypes", [typeof (_j = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _j : Object]),
     __metadata("design:returntype", void 0)
 ], AuthController.prototype, "getProfile", null);
 exports.AuthController = AuthController = __decorate([
@@ -1567,7 +1444,7 @@ exports.AuthController = AuthController = __decorate([
 
 
 /***/ }),
-/* 36 */
+/* 34 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1585,8 +1462,8 @@ var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthGuard = void 0;
 const common_1 = __webpack_require__(6);
-const jwt_1 = __webpack_require__(17);
-const configuration_1 = __webpack_require__(20);
+const jwt_1 = __webpack_require__(25);
+const configuration_1 = __webpack_require__(32);
 let AuthGuard = exports.AuthGuard = class AuthGuard {
     constructor(jwtService) {
         this.jwtService = jwtService;
@@ -1623,6 +1500,35 @@ exports.AuthGuard = AuthGuard = __decorate([
 
 
 /***/ }),
+/* 35 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.HasRoles = void 0;
+const common_1 = __webpack_require__(6);
+const HasRoles = (...roles) => (0, common_1.SetMetadata)('roles', roles);
+exports.HasRoles = HasRoles;
+
+
+/***/ }),
+/* 36 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Role = void 0;
+var Role;
+(function (Role) {
+    Role["User"] = "user";
+    Role["Moderator"] = "moderator";
+    Role["Admin"] = "admin";
+})(Role || (exports.Role = Role = {}));
+
+
+/***/ }),
 /* 37 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -1637,37 +1543,55 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var _a;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.JwtStrategy = void 0;
-const passport_jwt_1 = __webpack_require__(38);
-const passport_1 = __webpack_require__(12);
+exports.RolesGuard = void 0;
 const common_1 = __webpack_require__(6);
-const configuration_1 = __webpack_require__(20);
-let JwtStrategy = exports.JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
-    constructor() {
-        super({
-            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: false,
-            secretOrKey: configuration_1.jwtConstants.secret,
-        });
+const core_1 = __webpack_require__(4);
+let RolesGuard = exports.RolesGuard = class RolesGuard {
+    constructor(reflector) {
+        this.reflector = reflector;
     }
-    async validate(payload) {
-        console.log(payload);
-        return { userId: payload.sub, username: payload.username };
+    canActivate(context) {
+        const requiredRoles = this.reflector.getAllAndOverride('roles', [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+        if (!requiredRoles) {
+            return true;
+        }
+        const { user } = context.switchToHttp().getRequest();
+        return requiredRoles.some((role) => user?.roles?.includes(role));
     }
 };
-exports.JwtStrategy = JwtStrategy = __decorate([
+exports.RolesGuard = RolesGuard = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
-], JwtStrategy);
+    __metadata("design:paramtypes", [typeof (_a = typeof core_1.Reflector !== "undefined" && core_1.Reflector) === "function" ? _a : Object])
+], RolesGuard);
 
 
 /***/ }),
 /* 38 */
-/***/ ((module) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
-module.exports = require("passport-jwt");
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LocalAuthGuard = void 0;
+const common_1 = __webpack_require__(6);
+const passport_1 = __webpack_require__(26);
+let LocalAuthGuard = exports.LocalAuthGuard = class LocalAuthGuard extends (0, passport_1.AuthGuard)('local') {
+};
+exports.LocalAuthGuard = LocalAuthGuard = __decorate([
+    (0, common_1.Injectable)()
+], LocalAuthGuard);
+
 
 /***/ }),
 /* 39 */
@@ -1685,6 +1609,13 @@ module.exports = require("hbs");
 
 /***/ }),
 /* 41 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("helmet");
+
+/***/ }),
+/* 42 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1733,77 +1664,6 @@ const sortableTrash = (field, sort) => {
 exports.sortableTrash = sortableTrash;
 const checkRole = () => { };
 exports.checkRole = checkRole;
-
-
-/***/ }),
-/* 42 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.HasRoles = void 0;
-const common_1 = __webpack_require__(6);
-const HasRoles = (...roles) => (0, common_1.SetMetadata)('roles', roles);
-exports.HasRoles = HasRoles;
-
-
-/***/ }),
-/* 43 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.Role = void 0;
-var Role;
-(function (Role) {
-    Role["User"] = "user";
-    Role["Moderator"] = "moderator";
-    Role["Admin"] = "admin";
-})(Role || (exports.Role = Role = {}));
-
-
-/***/ }),
-/* 44 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.RolesGuard = void 0;
-const common_1 = __webpack_require__(6);
-const core_1 = __webpack_require__(4);
-let RolesGuard = exports.RolesGuard = class RolesGuard {
-    constructor(reflector) {
-        this.reflector = reflector;
-    }
-    canActivate(context) {
-        const requiredRoles = this.reflector.getAllAndOverride('roles', [
-            context.getHandler(),
-            context.getClass(),
-        ]);
-        if (!requiredRoles) {
-            return true;
-        }
-        const { user } = context.switchToHttp().getRequest();
-        return requiredRoles.some((role) => user?.roles?.includes(role));
-    }
-};
-exports.RolesGuard = RolesGuard = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof core_1.Reflector !== "undefined" && core_1.Reflector) === "function" ? _a : Object])
-], RolesGuard);
 
 
 /***/ })
@@ -1868,7 +1728,7 @@ exports.RolesGuard = RolesGuard = __decorate([
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("c359aecc9e465f2b73da")
+/******/ 		__webpack_require__.h = () => ("c5a0db5f2b7a816c5d20")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
