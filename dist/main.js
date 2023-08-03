@@ -1001,13 +1001,14 @@ const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
 const jwt_1 = __webpack_require__(25);
 const passport_1 = __webpack_require__(26);
-const local_strategy_1 = __webpack_require__(27);
-const auth_controller_1 = __webpack_require__(33);
-const auth_service_1 = __webpack_require__(29);
-const user_schema_1 = __webpack_require__(15);
 const user_module_1 = __webpack_require__(11);
-const configuration_1 = __webpack_require__(32);
-const refresh_token_schema_1 = __webpack_require__(31);
+const auth_controller_1 = __webpack_require__(27);
+const auth_service_1 = __webpack_require__(30);
+const configuration_1 = __webpack_require__(29);
+const local_strategy_1 = __webpack_require__(37);
+const jwt_strategy_1 = __webpack_require__(43);
+const user_schema_1 = __webpack_require__(15);
+const refresh_token_schema_1 = __webpack_require__(32);
 let AuthModule = exports.AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule = __decorate([
@@ -1026,7 +1027,7 @@ exports.AuthModule = AuthModule = __decorate([
             ]),
         ],
         controllers: [auth_controller_1.AuthController],
-        providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy],
+        providers: [auth_service_1.AuthService, local_strategy_1.LocalStrategy, jwt_strategy_1.JwtStrategy],
         exports: [auth_service_1.AuthService],
     })
 ], AuthModule);
@@ -1061,41 +1062,109 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var _a;
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var _a, _b, _c, _d, _e, _f, _g, _h, _j;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LocalStrategy = void 0;
-const passport_local_1 = __webpack_require__(28);
-const passport_1 = __webpack_require__(26);
+exports.AuthController = void 0;
 const common_1 = __webpack_require__(6);
-const auth_service_1 = __webpack_require__(29);
-let LocalStrategy = exports.LocalStrategy = class LocalStrategy extends (0, passport_1.PassportStrategy)(passport_local_1.Strategy) {
-    constructor(authService) {
-        super();
-        this.authService = authService;
+const express_1 = __webpack_require__(18);
+const auth_service_1 = __webpack_require__(30);
+const create_user_dto_1 = __webpack_require__(19);
+const has_roles_decorator_1 = __webpack_require__(33);
+const role_enum_1 = __webpack_require__(34);
+const roles_guard_1 = __webpack_require__(35);
+const local_auth_guard_1 = __webpack_require__(36);
+const jwt_auth_guard_1 = __webpack_require__(45);
+let AuthController = exports.AuthController = class AuthController {
+    constructor(AuthService) {
+        this.AuthService = AuthService;
     }
-    async validate(username, password) {
-        const user = await this.authService.validateUser(username, password);
-        if (!user) {
-            throw new common_1.UnauthorizedException();
-        }
-        return user;
+    async register(res, user) {
+        const data = await this.AuthService.register({
+            ...user,
+            username: user.username?.toLowerCase(),
+        });
+        return res.status(common_1.HttpStatus.CREATED).json(data);
+    }
+    async RefreshToken(res, request) {
+        return this.AuthService.RefreshToken(request.body.refresh_token);
+    }
+    async login(request) {
+        return this.AuthService.login(request.user);
+    }
+    getProfile(request) {
+        return request.user;
     }
 };
-exports.LocalStrategy = LocalStrategy = __decorate([
-    (0, common_1.Injectable)(),
+__decorate([
+    (0, common_1.Post)('/register'),
+    __param(0, (0, common_1.Res)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object, typeof (_c = typeof create_user_dto_1.CreateUserDto !== "undefined" && create_user_dto_1.CreateUserDto) === "function" ? _c : Object]),
+    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
+], AuthController.prototype, "register", null);
+__decorate([
+    (0, common_1.Post)('/refresh-token'),
+    __param(0, (0, common_1.Res)()),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_e = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _e : Object, typeof (_f = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _f : Object]),
+    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
+], AuthController.prototype, "RefreshToken", null);
+__decorate([
+    (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
+    (0, common_1.Post)('/login'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_h = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _h : Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "login", null);
+__decorate([
+    (0, has_roles_decorator_1.HasRoles)(role_enum_1.Role.Admin, role_enum_1.Role.Moderator),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
+    (0, common_1.Get)('/profile'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [typeof (_j = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _j : Object]),
+    __metadata("design:returntype", void 0)
+], AuthController.prototype, "getProfile", null);
+exports.AuthController = AuthController = __decorate([
+    (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object])
-], LocalStrategy);
+], AuthController);
 
 
 /***/ }),
-/* 28 */
-/***/ ((module) => {
+/* 28 */,
+/* 29 */
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
-module.exports = require("passport-local");
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.jwtConstants = exports.config = void 0;
+const config = () => ({
+    app: {
+        port: process.env.PORT,
+    },
+    database: {
+        database_host: process.env.DATABASE_HOST,
+        database_name: process.env.DATABASE_NAME,
+    },
+});
+exports.config = config;
+exports.jwtConstants = {
+    secret: 'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
+    jwtExpiration: '360s',
+    jwtExpirationRefresh: '480s',
+};
+
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1119,11 +1188,11 @@ const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
 const mongoose_2 = __webpack_require__(13);
 const bcrypt = __webpack_require__(14);
-const uuidv4_1 = __webpack_require__(30);
+const uuidv4_1 = __webpack_require__(31);
 const jwt_1 = __webpack_require__(25);
 const user_schema_1 = __webpack_require__(15);
-const refresh_token_schema_1 = __webpack_require__(31);
-const configuration_1 = __webpack_require__(32);
+const refresh_token_schema_1 = __webpack_require__(32);
+const configuration_1 = __webpack_require__(29);
 let AuthService = exports.AuthService = class AuthService {
     constructor(modelUser, modelRefreshToken, jwtService) {
         this.modelUser = modelUser;
@@ -1221,7 +1290,6 @@ let AuthService = exports.AuthService = class AuthService {
                 ])
                     .exec();
                 const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
-                console.log(userFind);
                 if (userFind) {
                     if (!isCheckPassword) {
                         resolve({
@@ -1232,13 +1300,14 @@ let AuthService = exports.AuthService = class AuthService {
                     else {
                         resolve({
                             userInfo: userFind,
+                            status: 'success',
                         });
                     }
                 }
                 else {
                     resolve({
                         status: 'error',
-                        message: `Your email does not exist. Please re-enter!`,
+                        message: `Your Username does not exist. Please re-enter!`,
                     });
                 }
             }
@@ -1248,22 +1317,35 @@ let AuthService = exports.AuthService = class AuthService {
         });
     }
     async login(user) {
-        const { _id, username, roles, email } = user.userInfo;
-        const payload = { sub: _id, username: username, roles: roles, email };
-        const refreshToken = (0, uuidv4_1.uuid)();
-        let expiredAt = new Date();
-        expiredAt.setSeconds(expiredAt.getSeconds() + parseInt(configuration_1.jwtConstants.jwtExpirationRefresh));
-        await this.modelRefreshToken.create({
-            token: refreshToken,
-            userId: _id,
-            expiryDate: expiredAt.getTime(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (user.status === 'error') {
+                    resolve(user);
+                }
+                if (user.status === 'success') {
+                    const { _id, username, roles, email } = user.userInfo;
+                    const payload = { sub: _id, username: username, roles: roles, email };
+                    const refreshToken = (0, uuidv4_1.uuid)();
+                    let expiredAt = new Date();
+                    expiredAt.setSeconds(expiredAt.getSeconds() +
+                        parseInt(configuration_1.jwtConstants.jwtExpirationRefresh));
+                    await this.modelRefreshToken.create({
+                        token: refreshToken,
+                        userId: _id,
+                        expiryDate: expiredAt.getTime(),
+                        createdAt: new Date(),
+                        updatedAt: new Date(),
+                    });
+                    resolve({
+                        access_token: this.jwtService.sign(payload),
+                        refresh_token: refreshToken,
+                    });
+                }
+            }
+            catch (error) {
+                reject(error);
+            }
         });
-        return {
-            access_token: this.jwtService.sign(payload),
-            refresh_token: refreshToken,
-        };
     }
 };
 exports.AuthService = AuthService = __decorate([
@@ -1275,14 +1357,14 @@ exports.AuthService = AuthService = __decorate([
 
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("uuidv4");
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1329,178 +1411,7 @@ exports.RefreshTokenSchema = mongoose_1.SchemaFactory.createForClass(RefreshToke
 
 
 /***/ }),
-/* 32 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.jwtConstants = exports.config = void 0;
-const config = () => ({
-    app: {
-        port: process.env.PORT,
-    },
-    database: {
-        database_host: process.env.DATABASE_HOST,
-        database_name: process.env.DATABASE_NAME,
-    },
-});
-exports.config = config;
-exports.jwtConstants = {
-    secret: 'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
-    jwtExpiration: '360s',
-    jwtExpirationRefresh: '480s',
-};
-
-
-/***/ }),
 /* 33 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var __param = (this && this.__param) || function (paramIndex, decorator) {
-    return function (target, key) { decorator(target, key, paramIndex); }
-};
-var _a, _b, _c, _d, _e, _f, _g, _h, _j;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AuthController = void 0;
-const common_1 = __webpack_require__(6);
-const express_1 = __webpack_require__(18);
-const auth_guard_1 = __webpack_require__(34);
-const auth_service_1 = __webpack_require__(29);
-const create_user_dto_1 = __webpack_require__(19);
-const has_roles_decorator_1 = __webpack_require__(35);
-const role_enum_1 = __webpack_require__(36);
-const roles_guard_1 = __webpack_require__(37);
-const local_auth_guard_1 = __webpack_require__(38);
-let AuthController = exports.AuthController = class AuthController {
-    constructor(AuthService) {
-        this.AuthService = AuthService;
-    }
-    async register(res, user) {
-        const data = await this.AuthService.register({
-            ...user,
-            username: user.username?.toLowerCase(),
-        });
-        return res.status(common_1.HttpStatus.CREATED).json(data);
-    }
-    async RefreshToken(res, request) {
-        return this.AuthService.RefreshToken(request.body.refresh_token);
-    }
-    async login(request) {
-        return this.AuthService.login(request.user);
-    }
-    getProfile(request) {
-        return request.user;
-    }
-};
-__decorate([
-    (0, common_1.Post)('/register'),
-    __param(0, (0, common_1.Res)()),
-    __param(1, (0, common_1.Body)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_b = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _b : Object, typeof (_c = typeof create_user_dto_1.CreateUserDto !== "undefined" && create_user_dto_1.CreateUserDto) === "function" ? _c : Object]),
-    __metadata("design:returntype", typeof (_d = typeof Promise !== "undefined" && Promise) === "function" ? _d : Object)
-], AuthController.prototype, "register", null);
-__decorate([
-    (0, common_1.Post)('/refresh-token'),
-    __param(0, (0, common_1.Res)()),
-    __param(1, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_e = typeof express_1.Response !== "undefined" && express_1.Response) === "function" ? _e : Object, typeof (_f = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _f : Object]),
-    __metadata("design:returntype", typeof (_g = typeof Promise !== "undefined" && Promise) === "function" ? _g : Object)
-], AuthController.prototype, "RefreshToken", null);
-__decorate([
-    (0, common_1.UseGuards)(local_auth_guard_1.LocalAuthGuard),
-    (0, common_1.Post)('/login'),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_h = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _h : Object]),
-    __metadata("design:returntype", Promise)
-], AuthController.prototype, "login", null);
-__decorate([
-    (0, has_roles_decorator_1.HasRoles)(role_enum_1.Role.Admin),
-    (0, common_1.UseGuards)(auth_guard_1.AuthGuard, roles_guard_1.RolesGuard),
-    (0, common_1.Get)('/profile'),
-    __param(0, (0, common_1.Req)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [typeof (_j = typeof express_1.Request !== "undefined" && express_1.Request) === "function" ? _j : Object]),
-    __metadata("design:returntype", void 0)
-], AuthController.prototype, "getProfile", null);
-exports.AuthController = AuthController = __decorate([
-    (0, common_1.Controller)('auth'),
-    __metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object])
-], AuthController);
-
-
-/***/ }),
-/* 34 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-var _a;
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AuthGuard = void 0;
-const common_1 = __webpack_require__(6);
-const jwt_1 = __webpack_require__(25);
-const configuration_1 = __webpack_require__(32);
-let AuthGuard = exports.AuthGuard = class AuthGuard {
-    constructor(jwtService) {
-        this.jwtService = jwtService;
-    }
-    async canActivate(context) {
-        const request = context.switchToHttp().getRequest();
-        const token = this.extractTokenFromHeader(request);
-        if (!token) {
-            throw new common_1.UnauthorizedException();
-        }
-        try {
-            const payload = await this.jwtService.verifyAsync(token, {
-                secret: configuration_1.jwtConstants.secret,
-            });
-            request['user'] = payload;
-        }
-        catch {
-            throw new common_1.UnauthorizedException({
-                message: 'Unauthorized! Access Token was expired!',
-                statusCode: 401,
-            });
-        }
-        return true;
-    }
-    extractTokenFromHeader(request) {
-        const [type, token] = request.headers.authorization?.split(' ') ?? [];
-        return type === 'Token' ? token : undefined;
-    }
-};
-exports.AuthGuard = AuthGuard = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [typeof (_a = typeof jwt_1.JwtService !== "undefined" && jwt_1.JwtService) === "function" ? _a : Object])
-], AuthGuard);
-
-
-/***/ }),
-/* 35 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1513,7 +1424,7 @@ exports.HasRoles = HasRoles;
 
 
 /***/ }),
-/* 36 */
+/* 34 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1529,7 +1440,7 @@ var Role;
 
 
 /***/ }),
-/* 37 */
+/* 35 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1571,7 +1482,7 @@ exports.RolesGuard = RolesGuard = __decorate([
 
 
 /***/ }),
-/* 38 */
+/* 36 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1592,6 +1503,51 @@ exports.LocalAuthGuard = LocalAuthGuard = __decorate([
     (0, common_1.Injectable)()
 ], LocalAuthGuard);
 
+
+/***/ }),
+/* 37 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var _a;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.LocalStrategy = void 0;
+const passport_local_1 = __webpack_require__(38);
+const passport_1 = __webpack_require__(26);
+const common_1 = __webpack_require__(6);
+const auth_service_1 = __webpack_require__(30);
+let LocalStrategy = exports.LocalStrategy = class LocalStrategy extends (0, passport_1.PassportStrategy)(passport_local_1.Strategy) {
+    constructor(authService) {
+        super();
+        this.authService = authService;
+    }
+    async validate(username, password) {
+        const user = await this.authService.validateUser(username, password);
+        return user;
+    }
+};
+exports.LocalStrategy = LocalStrategy = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [typeof (_a = typeof auth_service_1.AuthService !== "undefined" && auth_service_1.AuthService) === "function" ? _a : Object])
+], LocalStrategy);
+
+
+/***/ }),
+/* 38 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("passport-local");
 
 /***/ }),
 /* 39 */
@@ -1666,6 +1622,79 @@ const checkRole = () => { };
 exports.checkRole = checkRole;
 
 
+/***/ }),
+/* 43 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.JwtStrategy = void 0;
+const passport_jwt_1 = __webpack_require__(44);
+const passport_1 = __webpack_require__(26);
+const common_1 = __webpack_require__(6);
+const configuration_1 = __webpack_require__(29);
+let JwtStrategy = exports.JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
+    constructor() {
+        super({
+            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpiration: false,
+            secretOrKey: configuration_1.jwtConstants.secret,
+        });
+    }
+    async validate(payload) {
+        return {
+            userId: payload.sub,
+            username: payload.username,
+            roles: payload.roles,
+        };
+    }
+};
+exports.JwtStrategy = JwtStrategy = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [])
+], JwtStrategy);
+
+
+/***/ }),
+/* 44 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("passport-jwt");
+
+/***/ }),
+/* 45 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.JwtAuthGuard = void 0;
+const common_1 = __webpack_require__(6);
+const passport_1 = __webpack_require__(26);
+let JwtAuthGuard = exports.JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
+};
+exports.JwtAuthGuard = JwtAuthGuard = __decorate([
+    (0, common_1.Injectable)()
+], JwtAuthGuard);
+
+
 /***/ })
 /******/ 	]);
 /************************************************************************/
@@ -1728,7 +1757,7 @@ exports.checkRole = checkRole;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("c5a0db5f2b7a816c5d20")
+/******/ 		__webpack_require__.h = () => ("68bc631fa71805ff31de")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

@@ -7,7 +7,6 @@ import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { SortUserDto } from './dto/sort-user.dto';
-// import { Role } from 'src/model/role.enum';
 import { RoleDocument, Role } from './schemas/role.schema';
 
 @Injectable()

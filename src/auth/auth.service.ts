@@ -98,6 +98,7 @@ export class AuthService {
       }
     });
   }
+
   // JWT
   // async loginUser(email: string, password: string): Promise<object> {
   //   return new Promise<object>(async (resolve, reject) => {
@@ -159,6 +160,7 @@ export class AuthService {
   // }
 
   //PASSPORT
+
   async validateUser(username: string, password: string): Promise<object> {
     return new Promise<object>(async (resolve, reject) => {
       try {
@@ -176,7 +178,6 @@ export class AuthService {
           password,
           `${userFind?.password}`,
         );
-        console.log(userFind);
 
         if (userFind) {
           if (!isCheckPassword) {
@@ -187,12 +188,13 @@ export class AuthService {
           } else {
             resolve({
               userInfo: userFind,
+              status: 'success',
             });
           }
         } else {
           resolve({
             status: 'error',
-            message: `Your email does not exist. Please re-enter!`,
+            message: `Your Username does not exist. Please re-enter!`,
           });
         }
       } catch (error) {
@@ -201,26 +203,36 @@ export class AuthService {
     });
   }
 
-  async login(user: any) {
-    const { _id, username, roles, email } = user.userInfo;
-    const payload = { sub: _id, username: username, roles: roles, email };
-
-    const refreshToken = uuid();
-    let expiredAt = new Date();
-    expiredAt.setSeconds(
-      expiredAt.getSeconds() + parseInt(jwtConstants.jwtExpirationRefresh),
-    );
-    await this.modelRefreshToken.create({
-      token: refreshToken,
-      userId: _id,
-      expiryDate: expiredAt.getTime(),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  async login(user: any): Promise<object> {
+    return new Promise<object>(async (resolve, reject) => {
+      try {
+        if (user.status === 'error') {
+          resolve(user);
+        }
+        if (user.status === 'success') {
+          const { _id, username, roles, email } = user.userInfo;
+          const payload = { sub: _id, username: username, roles: roles, email };
+          const refreshToken = uuid();
+          let expiredAt = new Date();
+          expiredAt.setSeconds(
+            expiredAt.getSeconds() +
+              parseInt(jwtConstants.jwtExpirationRefresh),
+          );
+          await this.modelRefreshToken.create({
+            token: refreshToken,
+            userId: _id,
+            expiryDate: expiredAt.getTime(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+          resolve({
+            access_token: this.jwtService.sign(payload),
+            refresh_token: refreshToken,
+          });
+        }
+      } catch (error) {
+        reject(error);
+      }
     });
-
-    return {
-      access_token: this.jwtService.sign(payload),
-      refresh_token: refreshToken,
-    };
   }
 }

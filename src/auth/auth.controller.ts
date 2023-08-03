@@ -19,6 +19,7 @@ import { Role } from 'src/model/role.enum';
 import { RolesGuard } from './roles.guard';
 //import passport
 import { LocalAuthGuard } from './local-auth.guard';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -41,13 +42,21 @@ export class AuthController {
   ): Promise<object> {
     return this.AuthService.RefreshToken(request.body.refresh_token);
   }
-  // //JWT
+  // //JWT==========================================================
   // @HttpCode(HttpStatus.OK)
   // @Post('/login')
   // async loginUser(@Body() user: CreateUserDto): Promise<object> {
   //   const { email, password } = user;
   //   return this.AuthService.loginUser(email, password);
   // }
+  // //demo authorization page profile
+  // @HasRoles(Role.Admin, Role.Moderator)
+  // @UseGuards(AuthGuard, RolesGuard)
+  // @Get('/profile')
+  // getProfile(@Req() request: Request) {
+  //   return request.user;
+  // }
+  //================================================================
 
   //passport
   @UseGuards(LocalAuthGuard)
@@ -57,8 +66,8 @@ export class AuthController {
   }
 
   // //demo authorization page profile
-  @HasRoles(Role.Admin)
-  @UseGuards(AuthGuard, RolesGuard)
+  @HasRoles(Role.Admin, Role.Moderator)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('/profile')
   getProfile(@Req() request: Request) {
     return request.user;

@@ -27,7 +27,6 @@ export class AuthGuard implements CanActivate {
       // so that we can access it in our route handlers
       request['user'] = payload;
     } catch {
-      //Khi token het han
       throw new UnauthorizedException({
         message: 'Unauthorized! Access Token was expired!',
         statusCode: 401,

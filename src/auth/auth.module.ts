@@ -2,14 +2,14 @@ import { Global, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { LocalStrategy } from './local.strategy';
 
+import { UserModule } from 'src/users/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { User, UserSchema } from 'src/users/schemas/user.schema';
-import { UserModule } from 'src/users/user.module';
 import { jwtConstants } from 'src/config/configuration';
-// import { JwtStrategy } from './jwt.strategy';
+import { LocalStrategy } from './local.strategy';
+import { JwtStrategy } from './jwt.strategy';
+import { User, UserSchema } from 'src/users/schemas/user.schema';
 import {
   RefreshToken,
   RefreshTokenSchema,
@@ -30,7 +30,7 @@ import {
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}
