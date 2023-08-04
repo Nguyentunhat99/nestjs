@@ -1264,11 +1264,12 @@ let AuthService = exports.AuthService = class AuthService {
     async login(user) {
         return new Promise(async (resolve, reject) => {
             try {
-                const { _id, username, roles, email } = user;
+                const { _id, username, roles, email } = user.userInfo;
                 const payload = { sub: _id, username: username, roles: roles, email };
                 const refreshToken = (0, uuidv4_1.uuid)();
                 let expiredAt = new Date();
-                expiredAt.setSeconds(expiredAt.getSeconds() + parseInt(configuration_1.jwtConstants.jwtExpirationRefresh));
+                expiredAt.setSeconds(expiredAt.getSeconds() +
+                    parseInt(configuration_1.jwtConstants.jwtExpirationRefresh));
                 await this.modelRefreshToken.create({
                     token: refreshToken,
                     userId: _id,
@@ -1724,7 +1725,7 @@ exports.checkRole = checkRole;
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("b387a601a8ec823da778")
+/******/ 		__webpack_require__.h = () => ("40cb724a3f7bc0e8d688")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
