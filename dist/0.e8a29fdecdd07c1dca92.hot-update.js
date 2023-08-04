@@ -3,7 +3,7 @@ exports.id = 0;
 exports.ids = null;
 exports.modules = {
 
-/***/ 30:
+/***/ 28:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 
@@ -26,11 +26,11 @@ const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
 const mongoose_2 = __webpack_require__(13);
 const bcrypt = __webpack_require__(14);
-const uuidv4_1 = __webpack_require__(31);
+const uuidv4_1 = __webpack_require__(29);
 const jwt_1 = __webpack_require__(25);
 const user_schema_1 = __webpack_require__(15);
-const refresh_token_schema_1 = __webpack_require__(32);
-const configuration_1 = __webpack_require__(29);
+const refresh_token_schema_1 = __webpack_require__(30);
+const configuration_1 = __webpack_require__(31);
 let AuthService = exports.AuthService = class AuthService {
     constructor(modelUser, modelRefreshToken, jwtService) {
         this.modelUser = modelUser;
@@ -115,52 +115,21 @@ let AuthService = exports.AuthService = class AuthService {
         });
     }
     async validateUser(username, password) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const userFind = await this.modelUser
-                    .findOne({ username })
-                    .select([
-                    '-createdAt',
-                    '-updatedAt',
-                    '-deleted',
-                    '-deletedAt',
-                    '-__v',
-                ])
-                    .exec();
-                const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
-                if (userFind) {
-                    if (!isCheckPassword) {
-                        resolve({
-                            status: 'error',
-                            message: 'Wrong password',
-                        });
-                    }
-                    else {
-                        resolve({
-                            userInfo: userFind,
-                            status: 'success',
-                        });
-                    }
-                }
-                else {
-                    resolve({
-                        status: 'error',
-                        message: `Your Username does not exist. Please re-enter!`,
-                    });
-                }
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
+        const userFind = await this.modelUser
+            .findOne({ username })
+            .select(['-createdAt', '-updatedAt', '-deleted', '-deletedAt', '-__v'])
+            .exec();
+        const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
+        if (userFind && isCheckPassword) {
+            return userFind;
+        }
+        return null;
     }
     async login(user) {
         return new Promise(async (resolve, reject) => {
             try {
                 if (user.status === 'error') {
-                    resolve({
-                        user,
-                    });
+                    resolve(user);
                 }
                 if (user.status === 'success') {
                     const { _id, username, roles, email } = user.userInfo;
@@ -182,7 +151,7 @@ let AuthService = exports.AuthService = class AuthService {
                     });
                 }
             }
-            catch {
+            catch (error) {
                 reject(error);
             }
         });
@@ -203,7 +172,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("ba33cdb627f6f90eb3a4")
+/******/ 	__webpack_require__.h = () => ("66c1807500f8e42b80ab")
 /******/ })();
 /******/ 
 /******/ }

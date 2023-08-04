@@ -195,10 +195,10 @@ module.exports = function (updatedModules, renewedModules) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __webpack_require__(4);
 const app_module_1 = __webpack_require__(5);
-const path_1 = __webpack_require__(39);
-const hbs = __webpack_require__(40);
-const helmet_1 = __webpack_require__(41);
-const app_helper_1 = __webpack_require__(42);
+const path_1 = __webpack_require__(41);
+const hbs = __webpack_require__(42);
+const helmet_1 = __webpack_require__(43);
+const app_helper_1 = __webpack_require__(44);
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.enableCors();
@@ -1003,12 +1003,12 @@ const jwt_1 = __webpack_require__(25);
 const passport_1 = __webpack_require__(26);
 const user_module_1 = __webpack_require__(11);
 const auth_controller_1 = __webpack_require__(27);
-const auth_service_1 = __webpack_require__(30);
-const configuration_1 = __webpack_require__(29);
+const auth_service_1 = __webpack_require__(28);
+const configuration_1 = __webpack_require__(31);
 const local_strategy_1 = __webpack_require__(37);
-const jwt_strategy_1 = __webpack_require__(43);
+const jwt_strategy_1 = __webpack_require__(39);
 const user_schema_1 = __webpack_require__(15);
-const refresh_token_schema_1 = __webpack_require__(32);
+const refresh_token_schema_1 = __webpack_require__(30);
 let AuthModule = exports.AuthModule = class AuthModule {
 };
 exports.AuthModule = AuthModule = __decorate([
@@ -1070,13 +1070,13 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AuthController = void 0;
 const common_1 = __webpack_require__(6);
 const express_1 = __webpack_require__(18);
-const auth_service_1 = __webpack_require__(30);
+const auth_service_1 = __webpack_require__(28);
 const create_user_dto_1 = __webpack_require__(19);
-const has_roles_decorator_1 = __webpack_require__(33);
-const role_enum_1 = __webpack_require__(34);
-const roles_guard_1 = __webpack_require__(35);
-const local_auth_guard_1 = __webpack_require__(36);
-const jwt_auth_guard_1 = __webpack_require__(45);
+const has_roles_decorator_1 = __webpack_require__(32);
+const role_enum_1 = __webpack_require__(33);
+const roles_guard_1 = __webpack_require__(34);
+const local_auth_guard_1 = __webpack_require__(35);
+const jwt_auth_guard_1 = __webpack_require__(36);
 let AuthController = exports.AuthController = class AuthController {
     constructor(AuthService) {
         this.AuthService = AuthService;
@@ -1138,33 +1138,7 @@ exports.AuthController = AuthController = __decorate([
 
 
 /***/ }),
-/* 28 */,
-/* 29 */
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.jwtConstants = exports.config = void 0;
-const config = () => ({
-    app: {
-        port: process.env.PORT,
-    },
-    database: {
-        database_host: process.env.DATABASE_HOST,
-        database_name: process.env.DATABASE_NAME,
-    },
-});
-exports.config = config;
-exports.jwtConstants = {
-    secret: 'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
-    jwtExpiration: '360s',
-    jwtExpirationRefresh: '480s',
-};
-
-
-/***/ }),
-/* 30 */
+/* 28 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1188,11 +1162,11 @@ const common_1 = __webpack_require__(6);
 const mongoose_1 = __webpack_require__(7);
 const mongoose_2 = __webpack_require__(13);
 const bcrypt = __webpack_require__(14);
-const uuidv4_1 = __webpack_require__(31);
+const uuidv4_1 = __webpack_require__(29);
 const jwt_1 = __webpack_require__(25);
 const user_schema_1 = __webpack_require__(15);
-const refresh_token_schema_1 = __webpack_require__(32);
-const configuration_1 = __webpack_require__(29);
+const refresh_token_schema_1 = __webpack_require__(30);
+const configuration_1 = __webpack_require__(31);
 let AuthService = exports.AuthService = class AuthService {
     constructor(modelUser, modelRefreshToken, jwtService) {
         this.modelUser = modelUser;
@@ -1277,70 +1251,35 @@ let AuthService = exports.AuthService = class AuthService {
         });
     }
     async validateUser(username, password) {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const userFind = await this.modelUser
-                    .findOne({ username })
-                    .select([
-                    '-createdAt',
-                    '-updatedAt',
-                    '-deleted',
-                    '-deletedAt',
-                    '-__v',
-                ])
-                    .exec();
-                const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
-                if (userFind) {
-                    if (!isCheckPassword) {
-                        resolve({
-                            status: 'error',
-                            message: 'Wrong password',
-                        });
-                    }
-                    else {
-                        resolve({
-                            userInfo: userFind,
-                            status: 'success',
-                        });
-                    }
-                }
-                else {
-                    resolve({
-                        status: 'error',
-                        message: `Your Username does not exist. Please re-enter!`,
-                    });
-                }
-            }
-            catch (error) {
-                reject(error);
-            }
-        });
+        const userFind = await this.modelUser
+            .findOne({ username })
+            .select(['-createdAt', '-updatedAt', '-deleted', '-deletedAt', '-__v'])
+            .exec();
+        const isCheckPassword = await bcrypt.compare(password, `${userFind?.password}`);
+        if (userFind && isCheckPassword) {
+            return userFind;
+        }
+        return null;
     }
     async login(user) {
         return new Promise(async (resolve, reject) => {
             try {
-                if (user.status === 'error') {
-                    resolve(user);
-                }
-                if (user.status === 'success') {
-                    const { _id, username, roles, email } = user.userInfo;
-                    const payload = { sub: _id, username: username, roles: roles, email };
-                    const refreshToken = (0, uuidv4_1.uuid)();
-                    let expiredAt = new Date();
-                    expiredAt.setSeconds(expiredAt.getSeconds() +
-                        parseInt(configuration_1.jwtConstants.jwtExpirationRefresh));
-                    await this.modelRefreshToken.create({
-                        token: refreshToken,
-                        userId: _id,
-                        expiryDate: expiredAt.getTime(),
-                        createdAt: new Date(),
-                        updatedAt: new Date(),
-                    });
-                    resolve({
-                        access_token: this.jwtService.sign(payload),
-                        refresh_token: refreshToken,
-                    });
-                }
+                const { _id, username, roles, email } = user;
+                const payload = { sub: _id, username: username, roles: roles, email };
+                const refreshToken = (0, uuidv4_1.uuid)();
+                let expiredAt = new Date();
+                expiredAt.setSeconds(expiredAt.getSeconds() + parseInt(configuration_1.jwtConstants.jwtExpirationRefresh));
+                await this.modelRefreshToken.create({
+                    token: refreshToken,
+                    userId: _id,
+                    expiryDate: expiredAt.getTime(),
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                });
+                resolve({
+                    access_token: this.jwtService.sign(payload),
+                    refresh_token: refreshToken,
+                });
             }
             catch (error) {
                 reject(error);
@@ -1357,14 +1296,14 @@ exports.AuthService = AuthService = __decorate([
 
 
 /***/ }),
-/* 31 */
+/* 29 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("uuidv4");
 
 /***/ }),
-/* 32 */
+/* 30 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1411,7 +1350,32 @@ exports.RefreshTokenSchema = mongoose_1.SchemaFactory.createForClass(RefreshToke
 
 
 /***/ }),
-/* 33 */
+/* 31 */
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.jwtConstants = exports.config = void 0;
+const config = () => ({
+    app: {
+        port: process.env.PORT,
+    },
+    database: {
+        database_host: process.env.DATABASE_HOST,
+        database_name: process.env.DATABASE_NAME,
+    },
+});
+exports.config = config;
+exports.jwtConstants = {
+    secret: 'DO NOT USE THIS VALUE. INSTEAD, CREATE A COMPLEX SECRET AND KEEP IT SAFE OUTSIDE OF THE SOURCE CODE.',
+    jwtExpiration: '360s',
+    jwtExpirationRefresh: '480s',
+};
+
+
+/***/ }),
+/* 32 */
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -1424,7 +1388,7 @@ exports.HasRoles = HasRoles;
 
 
 /***/ }),
-/* 34 */
+/* 33 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1440,7 +1404,7 @@ var Role;
 
 
 /***/ }),
-/* 35 */
+/* 34 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1482,7 +1446,7 @@ exports.RolesGuard = RolesGuard = __decorate([
 
 
 /***/ }),
-/* 36 */
+/* 35 */
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -1502,6 +1466,29 @@ let LocalAuthGuard = exports.LocalAuthGuard = class LocalAuthGuard extends (0, p
 exports.LocalAuthGuard = LocalAuthGuard = __decorate([
     (0, common_1.Injectable)()
 ], LocalAuthGuard);
+
+
+/***/ }),
+/* 36 */
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.JwtAuthGuard = void 0;
+const common_1 = __webpack_require__(6);
+const passport_1 = __webpack_require__(26);
+let JwtAuthGuard = exports.JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
+};
+exports.JwtAuthGuard = JwtAuthGuard = __decorate([
+    (0, common_1.Injectable)()
+], JwtAuthGuard);
 
 
 /***/ }),
@@ -1525,7 +1512,7 @@ exports.LocalStrategy = void 0;
 const passport_local_1 = __webpack_require__(38);
 const passport_1 = __webpack_require__(26);
 const common_1 = __webpack_require__(6);
-const auth_service_1 = __webpack_require__(30);
+const auth_service_1 = __webpack_require__(28);
 let LocalStrategy = exports.LocalStrategy = class LocalStrategy extends (0, passport_1.PassportStrategy)(passport_local_1.Strategy) {
     constructor(authService) {
         super();
@@ -1533,6 +1520,9 @@ let LocalStrategy = exports.LocalStrategy = class LocalStrategy extends (0, pass
     }
     async validate(username, password) {
         const user = await this.authService.validateUser(username, password);
+        if (!user) {
+            throw new common_1.UnauthorizedException();
+        }
         return user;
     }
 };
@@ -1551,27 +1541,77 @@ module.exports = require("passport-local");
 
 /***/ }),
 /* 39 */
-/***/ ((module) => {
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
-module.exports = require("path");
+
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.JwtStrategy = void 0;
+const passport_jwt_1 = __webpack_require__(40);
+const passport_1 = __webpack_require__(26);
+const common_1 = __webpack_require__(6);
+const configuration_1 = __webpack_require__(31);
+let JwtStrategy = exports.JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
+    constructor() {
+        super({
+            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
+            ignoreExpiration: false,
+            secretOrKey: configuration_1.jwtConstants.secret,
+        });
+    }
+    async validate(payload) {
+        return {
+            userId: payload.sub,
+            username: payload.username,
+            roles: payload.roles,
+        };
+    }
+};
+exports.JwtStrategy = JwtStrategy = __decorate([
+    (0, common_1.Injectable)(),
+    __metadata("design:paramtypes", [])
+], JwtStrategy);
+
 
 /***/ }),
 /* 40 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = require("hbs");
+module.exports = require("passport-jwt");
 
 /***/ }),
 /* 41 */
 /***/ ((module) => {
 
 "use strict";
-module.exports = require("helmet");
+module.exports = require("path");
 
 /***/ }),
 /* 42 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("hbs");
+
+/***/ }),
+/* 43 */
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("helmet");
+
+/***/ }),
+/* 44 */
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -1620,79 +1660,6 @@ const sortableTrash = (field, sort) => {
 exports.sortableTrash = sortableTrash;
 const checkRole = () => { };
 exports.checkRole = checkRole;
-
-
-/***/ }),
-/* 43 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-var __metadata = (this && this.__metadata) || function (k, v) {
-    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.JwtStrategy = void 0;
-const passport_jwt_1 = __webpack_require__(44);
-const passport_1 = __webpack_require__(26);
-const common_1 = __webpack_require__(6);
-const configuration_1 = __webpack_require__(29);
-let JwtStrategy = exports.JwtStrategy = class JwtStrategy extends (0, passport_1.PassportStrategy)(passport_jwt_1.Strategy) {
-    constructor() {
-        super({
-            jwtFromRequest: passport_jwt_1.ExtractJwt.fromAuthHeaderAsBearerToken(),
-            ignoreExpiration: false,
-            secretOrKey: configuration_1.jwtConstants.secret,
-        });
-    }
-    async validate(payload) {
-        return {
-            userId: payload.sub,
-            username: payload.username,
-            roles: payload.roles,
-        };
-    }
-};
-exports.JwtStrategy = JwtStrategy = __decorate([
-    (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [])
-], JwtStrategy);
-
-
-/***/ }),
-/* 44 */
-/***/ ((module) => {
-
-"use strict";
-module.exports = require("passport-jwt");
-
-/***/ }),
-/* 45 */
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
-    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
-    return c > 3 && r && Object.defineProperty(target, key, r), r;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.JwtAuthGuard = void 0;
-const common_1 = __webpack_require__(6);
-const passport_1 = __webpack_require__(26);
-let JwtAuthGuard = exports.JwtAuthGuard = class JwtAuthGuard extends (0, passport_1.AuthGuard)('jwt') {
-};
-exports.JwtAuthGuard = JwtAuthGuard = __decorate([
-    (0, common_1.Injectable)()
-], JwtAuthGuard);
 
 
 /***/ })
@@ -1757,7 +1724,7 @@ exports.JwtAuthGuard = JwtAuthGuard = __decorate([
 /******/ 	
 /******/ 	/* webpack/runtime/getFullHash */
 /******/ 	(() => {
-/******/ 		__webpack_require__.h = () => ("68bc631fa71805ff31de")
+/******/ 		__webpack_require__.h = () => ("b387a601a8ec823da778")
 /******/ 	})();
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */

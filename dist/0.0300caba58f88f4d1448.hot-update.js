@@ -22,7 +22,7 @@ exports.LocalStrategy = void 0;
 const passport_local_1 = __webpack_require__(38);
 const passport_1 = __webpack_require__(26);
 const common_1 = __webpack_require__(6);
-const auth_service_1 = __webpack_require__(30);
+const auth_service_1 = __webpack_require__(28);
 let LocalStrategy = exports.LocalStrategy = class LocalStrategy extends (0, passport_1.PassportStrategy)(passport_local_1.Strategy) {
     constructor(authService) {
         super();
@@ -30,6 +30,11 @@ let LocalStrategy = exports.LocalStrategy = class LocalStrategy extends (0, pass
     }
     async validate(username, password) {
         const user = await this.authService.validateUser(username, password);
+        if (!user) {
+            throw new common_1.NotFoundException({
+                message: `Your username does not exist. Please re-enter!`,
+            });
+        }
         return user;
     }
 };
@@ -46,7 +51,7 @@ exports.runtime =
 /******/ function(__webpack_require__) { // webpackRuntimeModules
 /******/ /* webpack/runtime/getFullHash */
 /******/ (() => {
-/******/ 	__webpack_require__.h = () => ("2595f3ebc668103ac9b9")
+/******/ 	__webpack_require__.h = () => ("a077ee68fd0294708f49")
 /******/ })();
 /******/ 
 /******/ }
