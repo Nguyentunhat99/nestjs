@@ -6,22 +6,39 @@ import {
 } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { join } from 'path';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './users/user.module';
 import { SortMiddleWare } from './middleware/SortMiddleware.middleware';
 import { AuthModule } from './auth/auth.module';
+import { HelloworldModule } from './helloworld/helloworld.module';
+import { BlogModule } from './blog/blog.module';
 // import { VerifyRegister } from './middleware/verifyRegister.middleware';
+import { PersonModule } from './person/person.module';
+import { HobbyModule } from './hobby/hobby.module';
 
 @Module({
   imports: [
     UserModule,
-    MongooseModule.forRoot('mongodb://localhost:27017/crud_nestjs'),
     AuthModule,
+    HelloworldModule,
+    MongooseModule.forRoot('mongodb://localhost:27017/crud_nestjs'),
     ConfigModule.forRoot({
       envFilePath: '.development.env',
     }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      sortSchema: true,
+      playground: true,
+    }),
+    BlogModule,
+    PersonModule,
+    HobbyModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -34,8 +51,3 @@ export class AppModule implements NestModule {
     //   .forRoutes({ path: 'auth/register', method: RequestMethod.ALL });
   }
 }
-// providers: Có nhiệm vụ khởi tạo và cung cấp các service mà sẽ được controller trong module sẽ sử dụng đến.
-// controllers: Có nhiệm vụ khởi tạo những controller đã được xác định trong module.
-// imports: Có nhiệm vụ import những thành phần của một module khác mà module sẽ sử dụng.
-// exports: Có nhiệm vụ export các thành phần của provider và các module khác sẻ import để sử dụn
-// @Injectable() sẽ cho Nest biết đây là một class thuộc provider.

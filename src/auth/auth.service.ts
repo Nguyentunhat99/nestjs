@@ -179,7 +179,7 @@ export class AuthService {
   async login(user: any): Promise<object> {
     return new Promise<object>(async (resolve, reject) => {
       try {
-          const { _id, username, roles, email } = user.userInfo;
+          const { _id, username, roles, email } = user;
           const payload = { sub: _id, username: username, roles: roles, email };
           const refreshToken = uuid();
           let expiredAt = new Date();

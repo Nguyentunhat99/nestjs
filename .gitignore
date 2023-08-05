@@ -1,2 +1,7 @@
 node_modules
 .env
+# // providers: Có nhiệm vụ khởi tạo và cung cấp các service mà sẽ được controller trong module sẽ sử dụng đến.
+# // controllers: Có nhiệm vụ khởi tạo những controller đã được xác định trong module.
+# // imports: Có nhiệm vụ import những thành phần của một module khác mà module sẽ sử dụng.
+# // exports: Có nhiệm vụ export các thành phần của provider và các module khác sẻ import để sử dụn
+# // @Injectable() sẽ cho Nest biết đây là một class thuộc provider.

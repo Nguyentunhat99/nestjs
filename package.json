@@ -20,9 +20,12 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@apollo/server": "^4.9.0",
+    "@nestjs/apollo": "^12.0.7",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.0.0",
     "@nestjs/core": "^10.0.0",
+    "@nestjs/graphql": "^12.0.8",
     "@nestjs/jwt": "^10.1.0",
     "@nestjs/mongoose": "^10.0.1",
     "@nestjs/passport": "^10.0.0",
@@ -32,6 +35,7 @@
     "bcrypt": "^5.1.0",
     "csurf": "^1.11.0",
     "delete": "^1.1.0",
+    "graphql": "^16.7.1",
     "hbs": "^4.2.0",
     "helmet": "^7.0.0",
     "mongoose": "^7.4.1",
